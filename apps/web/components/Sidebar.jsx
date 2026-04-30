@@ -11,10 +11,13 @@ import {
   Users, 
   Settings,
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  User
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import useWorkspaceStore from '../store/useWorkspaceStore';
+import useAuthStore from '../store/useAuthStore';
+import { useEffect } from 'react';
 
 const navItems = [
   { name: 'Dashboard', href: '/goals', icon: LayoutDashboard },
@@ -28,6 +31,11 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { currentWorkspace } = useWorkspaceStore();
+  const { user, fetchMe } = useAuthStore();
+
+  useEffect(() => {
+    fetchMe();
+  }, []);
 
   return (
     <div className="flex h-full w-64 flex-col border-r border-white/10 bg-[#0a0a0a] text-white">
@@ -80,7 +88,21 @@ export default function Sidebar() {
       </div>
 
       <div className="border-t border-white/10 p-4">
-        <button className="flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all">
+        <Link 
+          href="/profile"
+          className={cn(
+            "flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium transition-all hover:bg-white/10",
+            pathname === '/profile' ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"
+          )}
+        >
+          {user?.avatar ? (
+            <img src={user.avatar} alt="" className="mr-3 h-5 w-5 rounded-full object-cover" />
+          ) : (
+            <User className="mr-3 h-5 w-5 text-gray-500" />
+          )}
+          Profile
+        </Link>
+        <button className="mt-1 flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all">
           <Settings className="mr-3 h-5 w-5 text-gray-500" />
           Settings
         </button>

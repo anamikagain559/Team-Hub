@@ -4,6 +4,7 @@ import { WorkspaceRoutes } from '../modules/workspace/workspace.route';
 import { GoalRoutes } from '../modules/goal/goal.route';
 import { AnnouncementRoutes } from '../modules/announcement/announcement.route';
 import { TaskRoutes } from '../modules/task/task.route';
+import { UserRoutes } from '../modules/user/user.route';
 
 const router = express.Router();
 
@@ -27,6 +28,10 @@ const moduleRoutes = [
   {
     path: '/tasks',
     route: TaskRoutes,
+  },
+  {
+    path: '/users',
+    route: UserRoutes,
   },
 ];
 

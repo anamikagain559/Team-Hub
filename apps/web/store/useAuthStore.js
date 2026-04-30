@@ -38,6 +38,47 @@ const useAuthStore = create((set) => ({
   setAccessToken: (token) => {
     Cookies.set('accessToken', token);
     set({ accessToken: token });
+  },
+
+  fetchMe: async () => {
+    const token = Cookies.get('accessToken');
+    if (!token) return;
+    
+    set({ isLoading: true });
+    try {
+      const response = await axios.get(`${API_URL}/users/me`, {
+        headers: { Authorization: token }
+      });
+      set({ user: response.data.data, isLoading: false });
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Failed to fetch user', isLoading: false });
+    }
+  },
+
+  updateProfile: async (data, file) => {
+    const token = Cookies.get('accessToken');
+    set({ isLoading: true, error: null });
+    
+    try {
+      const formData = new FormData();
+      if (file) {
+        formData.append('file', file);
+      }
+      formData.append('data', JSON.stringify(data));
+
+      const response = await axios.patch(`${API_URL}/users/update-profile`, formData, {
+        headers: { 
+          Authorization: token,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      set({ user: response.data.data, isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Update failed', isLoading: false });
+      throw error;
+    }
   }
 }));
 
