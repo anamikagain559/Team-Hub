@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post(
   '/',
-  auth('ADMIN'), // Only workspace/system admins can post
+  auth(),
   validateRequest(AnnouncementValidation.create),
   AnnouncementController.createAnnouncement
 );

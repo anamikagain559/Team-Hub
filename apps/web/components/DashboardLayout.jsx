@@ -10,14 +10,16 @@ export default function DashboardLayout({ children }) {
   const { accessToken } = useAuthStore();
   const { currentWorkspace } = useWorkspaceStore();
   const router = useRouter();
+  const [mounted, setMounted] = React.useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (!accessToken) {
       router.push('/login');
     }
-  }, [accessToken]);
+  }, [accessToken, router]);
 
-  if (!accessToken) return null;
+  if (!mounted || !accessToken) return null;
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden">

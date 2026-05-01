@@ -7,8 +7,9 @@ import {
 import useWorkspaceStore from '../store/useWorkspaceStore';
 import { cn } from '../lib/utils';
 
-export default function GoalDetailsModal({ goal, isOpen, onClose }) {
+export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
   const { 
+    goals,
     addMilestone, 
     updateMilestone, 
     deleteMilestone, 
@@ -16,20 +17,22 @@ export default function GoalDetailsModal({ goal, isOpen, onClose }) {
     updateGoalStatus 
   } = useWorkspaceStore();
   
+  const goal = goals.find(g => g.id === goalId);
+  
   const [activities, setActivities] = useState([]);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
   const [isSubmittingMilestone, setIsSubmittingMilestone] = useState(false);
   const [isFetchingActivity, setIsFetchingActivity] = useState(false);
 
   useEffect(() => {
-    if (isOpen && goal) {
+    if (isOpen && goalId) {
       loadActivity();
     }
-  }, [isOpen, goal]);
+  }, [isOpen, goalId]);
 
   const loadActivity = async () => {
     setIsFetchingActivity(true);
-    const data = await fetchGoalActivity(goal.id);
+    const data = await fetchGoalActivity(goalId);
     setActivities(data);
     setIsFetchingActivity(false);
   };

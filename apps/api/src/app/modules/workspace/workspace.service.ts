@@ -100,4 +100,15 @@ export const WorkspaceService = {
   getMyWorkspaces,
   inviteMember,
   getWorkspaceMembers,
+  updateMemberRole: async (memberId: string, role: WorkspaceRole) => {
+    return await prisma.workspaceMember.update({
+      where: { id: memberId },
+      data: { role },
+    });
+  },
+  removeMember: async (memberId: string) => {
+    return await prisma.workspaceMember.delete({
+      where: { id: memberId },
+    });
+  },
 };

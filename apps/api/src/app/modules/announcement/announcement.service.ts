@@ -1,9 +1,28 @@
 import { Announcement } from '@prisma/client';
 import prisma from '../../shared/prisma';
 
-const createAnnouncement = async (data: any): Promise<Announcement> => {
+const createAnnouncement = async (userId: string, data: any): Promise<Announcement> => {
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId,
+        workspaceId: data.workspaceId,
+      },
+    },
+  });
+
+  if (!member) {
+    throw new Error('You must be a member of this workspace to publish announcements');
+  }
+
   const result = await prisma.announcement.create({
-    data,
+    data: {
+      ...data,
+      authorId: userId,
+    },
+    include: {
+      author: { select: { name: true, avatar: true } },
+    }
   });
   return result;
 };
@@ -12,12 +31,18 @@ const getWorkspaceAnnouncements = async (workspaceId: string) => {
   const result = await prisma.announcement.findMany({
     where: { workspaceId },
     include: {
+      author: { select: { id: true, name: true, avatar: true } },
       comments: {
         include: {
-          user: { select: { name: true, avatar: true } },
+          user: { select: { id: true, name: true, avatar: true } },
         },
+        orderBy: { createdAt: 'asc' }
       },
-      reactions: true,
+      reactions: {
+        include: {
+          user: { select: { id: true, name: true } },
+        }
+      },
     },
     orderBy: [
       { isPinned: 'desc' },

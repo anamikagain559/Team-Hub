@@ -54,4 +54,25 @@ export const WorkspaceController = {
   getMyWorkspaces,
   inviteMember,
   getWorkspaceMembers,
+  updateMemberRole: catchAsync(async (req: Request, res: Response) => {
+    const { memberId } = req.params;
+    const { role } = req.body;
+    const result = await WorkspaceService.updateMemberRole(memberId, role);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Member role updated successfully!',
+      data: result,
+    });
+  }),
+  removeMember: catchAsync(async (req: Request, res: Response) => {
+    const { memberId } = req.params;
+    const result = await WorkspaceService.removeMember(memberId);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Member removed successfully!',
+      data: result,
+    });
+  }),
 };

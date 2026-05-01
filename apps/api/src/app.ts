@@ -26,12 +26,39 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// global error handler placeholder
+// global error handler
 app.use((err: any, req: Request, res: Response, next: any) => {
-  res.status(err.status || httpStatus.INTERNAL_SERVER_ERROR).json({
+  try {
+    require('fs').appendFileSync('error.log', new Date().toISOString() + ' - ' + JSON.stringify({ name: err.name, message: err.message, stack: err.stack, issues: err.issues }) + '\n');
+  } catch (e) {}
+
+  let statusCode = err.status || httpStatus.INTERNAL_SERVER_ERROR;
+  let message = err.message || 'Something went wrong!';
+  let errorDetails = err;
+
+  // Handle Zod validation errors
+  if (err.name === 'ZodError' || (err.issues && Array.isArray(err.issues))) {
+    statusCode = httpStatus.BAD_REQUEST;
+    message = err.issues.map((issue: any) => `${issue.path[issue.path.length - 1]}: ${issue.message}`).join('. ');
+  } else if (err.name === 'PrismaClientKnownRequestError' || err.message?.includes('prisma')) {
+    // Handle Prisma errors
+    statusCode = httpStatus.BAD_REQUEST;
+    message = 'Database operation failed. Please check your input data.';
+    
+    // Provide more specific hints for common Prisma errors if needed
+    if (err.code === 'P2002') {
+      message = 'A record with this information already exists.';
+    }
+  }
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || 'Something went wrong!',
-    errorDetails: err,
+    message,
+    errorMessages: [{
+      path: '',
+      message: message
+    }],
+    // stack: config.env !== 'production' ? err?.stack : undefined,
   });
 });
 

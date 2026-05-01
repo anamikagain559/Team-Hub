@@ -6,13 +6,17 @@ import useWorkspaceStore from '../../../store/useWorkspaceStore';
 import { cn } from '../../../lib/utils';
 import CreateGoalModal from '../../../components/CreateGoalModal';
 import GoalDetailsModal from '../../../components/GoalDetailsModal';
+import EditGoalModal from '../../../components/EditGoalModal';
 import Swal from 'sweetalert2';
+import { Pencil } from 'lucide-react';
 
 export default function GoalsPage() {
   const { currentWorkspace, goals, fetchGoals, updateGoalStatus, deleteGoal, isLoading } = useWorkspaceStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -42,6 +46,12 @@ export default function GoalsPage() {
   const handleGoalClick = (goal) => {
     setSelectedGoal(goal);
     setIsDetailsModalOpen(true);
+  };
+
+  const handleEditGoal = (e, goal) => {
+    e.stopPropagation();
+    setEditingGoal(goal);
+    setIsEditModalOpen(true);
   };
 
   const handleDeleteGoal = async (e, goalId) => {
@@ -174,6 +184,22 @@ export default function GoalsPage() {
 
                   <div className="flex items-center space-x-2">
                     <button 
+                      onClick={(e) => handleEditGoal(e, goal)}
+                      className="rounded-xl p-2.5 text-gray-500 hover:bg-white/10 hover:text-blue-400 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Pencil className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGoalClick(goal);
+                      }}
+                      className="flex items-center space-x-1.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-400 bg-white/5 hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/20"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Milestone</span>
+                    </button>
+                    <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         updateGoalStatus(goal.id, goal.status === 'COMPLETED' ? 'IN_PROGRESS' : 'COMPLETED');
@@ -204,9 +230,15 @@ export default function GoalsPage() {
         onClose={() => setIsCreateModalOpen(false)} 
       />
 
+      <EditGoalModal
+        goal={editingGoal}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
+
       {selectedGoal && (
         <GoalDetailsModal
-          goal={selectedGoal}
+          goalId={selectedGoal.id}
           isOpen={isDetailsModalOpen}
           onClose={() => setIsDetailsModalOpen(false)}
         />

@@ -40,6 +40,7 @@ model User {
   role          UserRole          @default(MEMBER)
   workspaces    WorkspaceMember[]
   goals         Goal[]
+  announcements Announcement[]    @relation("AnnouncementAuthor")
   actionItems   ActionItem[]
   comments      Comment[]
   reactions     Reaction[]
@@ -55,6 +56,7 @@ model Workspace {
   members       WorkspaceMember[]
   goals         Goal[]
   announcements Announcement[]
+  actionItems   ActionItem[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 }
@@ -102,8 +104,10 @@ model Milestone {
 model Announcement {
   id          String     @id @default(uuid())
   title       String
-  content     String
+  content     String     @db.Text
   isPinned    Boolean    @default(false)
+  authorId    String
+  author      User       @relation("AnnouncementAuthor", fields: [authorId], references: [id])
   workspaceId String
   workspace   Workspace  @relation(fields: [workspaceId], references: [id])
   comments    Comment[]
@@ -120,6 +124,8 @@ model ActionItem {
   assignee    User       @relation(fields: [assigneeId], references: [id])
   goalId      String?
   goal        Goal?      @relation(fields: [goalId], references: [id])
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
   priority    Priority   @default(MEDIUM)
   status      String     @default("TODO")
   dueDate     DateTime?
@@ -128,24 +134,26 @@ model ActionItem {
 }
 
 model Comment {
-  id             String        @id @default(uuid())
-  content        String
+  id             String       @id @default(uuid())
+  content        String       @db.Text
   userId         String
-  user           User          @relation(fields: [userId], references: [id])
-  announcementId String?
-  announcement   Announcement? @relation(fields: [announcementId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  user           User         @relation(fields: [userId], references: [id])
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Reaction {
-  id             String        @id @default(uuid())
+  id             String       @id @default(uuid())
   emoji          String
   userId         String
-  user           User          @relation(fields: [userId], references: [id])
-  announcementId String?
-  announcement   Announcement? @relation(fields: [announcementId], references: [id])
-  createdAt      DateTime      @default(now())
+  user           User         @relation(fields: [userId], references: [id])
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, announcementId, emoji])
 }
 
 model Activity {

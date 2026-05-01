@@ -1,14 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, Target, Calendar, AlignLeft, Clock, User } from 'lucide-react';
+import { X, Loader2, Target, Calendar, Clock, User } from 'lucide-react';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 import useAuthStore from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 
-export default function CreateGoalModal({ isOpen, onClose }) {
-  const { currentWorkspace, createGoal, fetchWorkspaceMembers } = useWorkspaceStore();
-  const { user: currentUser } = useAuthStore();
-  
+export default function EditGoalModal({ goal, isOpen, onClose }) {
+  const { updateGoal, currentWorkspace, fetchWorkspaceMembers } = useWorkspaceStore();
   const [formData, setFormData] = useState({
     title: '',
     ownerId: '',
@@ -20,16 +18,18 @@ export default function CreateGoalModal({ isOpen, onClose }) {
   const [isFetchingMembers, setIsFetchingMembers] = useState(false);
 
   useEffect(() => {
+    if (goal) {
+      setFormData({
+        title: goal.title || '',
+        ownerId: goal.ownerId || '',
+        dueDate: goal.dueDate ? new Date(goal.dueDate).toISOString().split('T')[0] : '',
+        status: goal.status || 'TODO',
+      });
+    }
     if (isOpen && currentWorkspace) {
       loadMembers();
     }
-  }, [isOpen, currentWorkspace]);
-
-  useEffect(() => {
-    if (currentUser && !formData.ownerId && isOpen) {
-      setFormData(prev => ({ ...prev, ownerId: currentUser.id }));
-    }
-  }, [currentUser, isOpen]);
+  }, [goal, isOpen, currentWorkspace]);
 
   const loadMembers = async () => {
     setIsFetchingMembers(true);
@@ -43,47 +43,32 @@ export default function CreateGoalModal({ isOpen, onClose }) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !goal) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!currentWorkspace) return;
-
     setIsLoading(true);
     try {
-      await createGoal({
-        ...formData,
-        workspaceId: currentWorkspace.id,
-      });
-      
+      await updateGoal(goal.id, formData);
       onClose();
-      setFormData({ 
-        title: '', 
-        ownerId: currentUser?.id || '', 
-        dueDate: '', 
-        status: 'TODO' 
-      });
-
       Swal.fire({
         icon: 'success',
-        title: 'Goal Created!',
-        text: 'Your new goal has been added to the workspace.',
+        title: 'Goal Updated!',
+        text: 'Your goal has been updated successfully.',
         background: '#0f172a',
         color: '#fff',
         confirmButtonColor: '#3b82f6',
-        timer: 3000,
-        timerProgressBar: true,
+        timer: 2000,
+        showConfirmButton: false
       });
     } catch (error) {
-      console.error('Failed to create goal:', error);
-      
+      console.error('Failed to update goal:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Oops...',
-        text: error.response?.data?.message || 'Something went wrong while creating your goal.',
+        title: 'Update Failed',
+        text: error.response?.data?.message || 'Something went wrong.',
         background: '#0f172a',
-        color: '#fff',
-        confirmButtonColor: '#ef4444',
+        color: '#fff'
       });
     } finally {
       setIsLoading(false);
@@ -95,10 +80,10 @@ export default function CreateGoalModal({ isOpen, onClose }) {
       <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl animate-in zoom-in-95 duration-300">
         <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-6 py-4">
           <div className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
               <Target className="h-5 w-5" />
             </div>
-            <h2 className="text-lg font-bold text-white">Create New Goal</h2>
+            <h2 className="text-lg font-bold text-white">Edit Goal</h2>
           </div>
           <button 
             onClick={onClose}
@@ -166,7 +151,7 @@ export default function CreateGoalModal({ isOpen, onClose }) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300 flex items-center">
                 <Clock className="h-4 w-4 mr-2 text-slate-500" />
-                Initial Status
+                Status
               </label>
               <select
                 value={formData.status}
@@ -192,15 +177,15 @@ export default function CreateGoalModal({ isOpen, onClose }) {
             <button
               disabled={isLoading}
               type="submit"
-              className="flex-1 flex items-center justify-center rounded-xl bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Updating...
                 </>
               ) : (
-                'Create Goal'
+                'Update Goal'
               )}
             </button>
           </div>

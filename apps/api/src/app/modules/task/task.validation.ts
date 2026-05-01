@@ -6,7 +6,9 @@ const create = z.object({
     description: z.string().optional(),
     assigneeId: z.string().uuid(),
     goalId: z.string().uuid().optional(),
+    workspaceId: z.string().uuid(),
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+    status: z.string().optional(),
     dueDate: z.string().optional(),
   }),
 });

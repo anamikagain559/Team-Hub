@@ -3,7 +3,9 @@ import prisma from '../../shared/prisma';
 
 const createGoal = async (userId: string, data: any): Promise<Goal> => {
   const goalData = { ...data };
-  
+  const ownerId = goalData.ownerId || userId;
+  delete goalData.ownerId; // Remove from spread to handle manually
+
   if (goalData.dueDate && goalData.dueDate !== '') {
     const date = new Date(goalData.dueDate);
     if (!isNaN(date.getTime())) {
@@ -18,7 +20,7 @@ const createGoal = async (userId: string, data: any): Promise<Goal> => {
   const result = await prisma.goal.create({
     data: {
       ...goalData,
-      ownerId: userId,
+      ownerId,
     },
     include: {
       owner: {
@@ -66,9 +68,21 @@ const updateGoal = async (userId: string, goalId: string, data: any) => {
   if (!goal) throw new Error('Goal not found');
   if (goal.ownerId !== userId) throw new Error('You are not authorized to update this goal');
 
+  const updateData = { ...data };
+  if (updateData.dueDate && updateData.dueDate !== '') {
+    const date = new Date(updateData.dueDate);
+    if (!isNaN(date.getTime())) {
+      updateData.dueDate = date;
+    } else {
+      delete updateData.dueDate;
+    }
+  } else if (updateData.dueDate === '') {
+    updateData.dueDate = null;
+  }
+
   const result = await prisma.goal.update({
     where: { id: goalId },
-    data,
+    data: updateData,
   });
 
   await prisma.activity.create({

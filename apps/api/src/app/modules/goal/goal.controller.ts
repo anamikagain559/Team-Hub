@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import catchAsync from '../../shared/catchAsync';
 import sendResponse from '../../shared/sendResponse';
 import { GoalService } from './goal.service';
+import { GoalStatus } from '@prisma/client';
 
 const createGoal = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
@@ -17,7 +18,7 @@ const createGoal = catchAsync(async (req: Request, res: Response) => {
 
 const getWorkspaceGoals = catchAsync(async (req: Request, res: Response) => {
   const { workspaceId } = req.params;
-  const result = await GoalService.getWorkspaceGoals(workspaceId);
+  const result = await GoalService.getWorkspaceGoals(workspaceId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -30,7 +31,7 @@ const updateGoalStatus = catchAsync(async (req: Request, res: Response) => {
   const { goalId } = req.params;
   const { status } = req.body;
   const userId = req.user?.userId;
-  const result = await GoalService.updateGoalStatus(userId, goalId, status);
+  const result = await GoalService.updateGoalStatus(userId as string, goalId as string, status as GoalStatus);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -42,7 +43,7 @@ const updateGoalStatus = catchAsync(async (req: Request, res: Response) => {
 const addMilestone = catchAsync(async (req: Request, res: Response) => {
   const { goalId } = req.params;
   const userId = req.user?.userId;
-  const result = await GoalService.addMilestone(userId, goalId, req.body);
+  const result = await GoalService.addMilestone(userId as string, goalId as string, req.body);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
@@ -54,7 +55,7 @@ const addMilestone = catchAsync(async (req: Request, res: Response) => {
 const updateGoal = catchAsync(async (req: Request, res: Response) => {
   const { goalId } = req.params;
   const userId = req.user?.userId;
-  const result = await GoalService.updateGoal(userId, goalId, req.body);
+  const result = await GoalService.updateGoal(userId as string, goalId as string, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -66,7 +67,7 @@ const updateGoal = catchAsync(async (req: Request, res: Response) => {
 const deleteGoal = catchAsync(async (req: Request, res: Response) => {
   const { goalId } = req.params;
   const userId = req.user?.userId;
-  const result = await GoalService.deleteGoal(userId, goalId);
+  const result = await GoalService.deleteGoal(userId as string, goalId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -78,7 +79,7 @@ const deleteGoal = catchAsync(async (req: Request, res: Response) => {
 const updateMilestone = catchAsync(async (req: Request, res: Response) => {
   const { milestoneId } = req.params;
   const userId = req.user?.userId;
-  const result = await GoalService.updateMilestone(userId, milestoneId, req.body);
+  const result = await GoalService.updateMilestone(userId as string, milestoneId as string, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -90,7 +91,7 @@ const updateMilestone = catchAsync(async (req: Request, res: Response) => {
 const deleteMilestone = catchAsync(async (req: Request, res: Response) => {
   const { milestoneId } = req.params;
   const userId = req.user?.userId;
-  const result = await GoalService.deleteMilestone(userId, milestoneId);
+  const result = await GoalService.deleteMilestone(userId as string, milestoneId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -101,7 +102,7 @@ const deleteMilestone = catchAsync(async (req: Request, res: Response) => {
 
 const getGoalActivity = catchAsync(async (req: Request, res: Response) => {
   const { goalId } = req.params;
-  const result = await GoalService.getGoalActivity(goalId);
+  const result = await GoalService.getGoalActivity(goalId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

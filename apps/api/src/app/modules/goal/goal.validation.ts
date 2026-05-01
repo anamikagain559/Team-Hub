@@ -6,6 +6,7 @@ const create = z.object({
     description: z.string().optional(),
     dueDate: z.string().optional(),
     workspaceId: z.string().uuid(),
+    ownerId: z.string().uuid().optional(),
     status: z.enum(['TODO', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   }),
 });

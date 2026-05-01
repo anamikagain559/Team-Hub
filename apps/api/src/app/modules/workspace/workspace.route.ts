@@ -24,4 +24,16 @@ router.post(
   WorkspaceController.inviteMember
 );
 
+router.patch(
+  '/members/:memberId',
+  auth(),
+  WorkspaceController.updateMemberRole
+);
+
+router.delete(
+  '/members/:memberId',
+  auth(),
+  WorkspaceController.removeMember
+);
+
 export const WorkspaceRoutes = router;

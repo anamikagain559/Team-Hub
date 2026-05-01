@@ -16,7 +16,7 @@ const createTask = catchAsync(async (req: Request, res: Response) => {
 
 const getWorkspaceTasks = catchAsync(async (req: Request, res: Response) => {
   const { workspaceId } = req.params;
-  const result = await TaskService.getWorkspaceTasks(workspaceId);
+  const result = await TaskService.getWorkspaceTasks(workspaceId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -28,7 +28,7 @@ const getWorkspaceTasks = catchAsync(async (req: Request, res: Response) => {
 const updateTaskStatus = catchAsync(async (req: Request, res: Response) => {
   const { taskId } = req.params;
   const { status } = req.body;
-  const result = await TaskService.updateTaskStatus(taskId, status);
+  const result = await TaskService.updateTaskStatus(taskId as string, status as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -37,8 +37,20 @@ const updateTaskStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteTask = catchAsync(async (req: Request, res: Response) => {
+  const { taskId } = req.params;
+  const result = await TaskService.deleteTask(taskId as string);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Task deleted successfully!',
+    data: result,
+  });
+});
+
 export const TaskController = {
   createTask,
   getWorkspaceTasks,
   updateTaskStatus,
+  deleteTask,
 };

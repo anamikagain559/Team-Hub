@@ -31,56 +31,89 @@ export default function WorkspacesPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl py-8 animate-in fade-in duration-500">
-        <div className="flex items-center justify-between border-b border-white/10 pb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Your Workspaces</h1>
-            <p className="mt-2 text-gray-400">Select a workspace to start collaborating</p>
+      <div className="max-w-6xl mx-auto py-12 px-6 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.06] pb-10">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+              Your Hubs
+            </h1>
+            <p className="text-lg text-slate-400 font-medium max-w-md leading-relaxed">
+              Elevate your team's workflow. Select a workspace to begin your next big mission.
+            </p>
           </div>
           <button 
-            className="flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-all"
+            className="flex items-center group relative overflow-hidden rounded-2xl bg-white text-slate-950 px-6 py-3 text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
             onClick={() => setIsModalOpen(true)}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            New Workspace
+            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+            <Plus className="mr-2 h-4 w-4 stroke-[3px]" />
+            Create Workspace
           </button>
         </div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {isLoading && workspaces.length === 0 ? (
-            <div className="col-span-full flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+            <div className="col-span-full flex flex-col items-center justify-center py-24 space-y-4">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-white"></div>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Synchronizing Workspaces...</p>
             </div>
           ) : workspaces.length === 0 ? (
-            <div className="col-span-full rounded-2xl border border-dashed border-white/10 p-12 text-center">
-              <Layout className="mx-auto h-12 w-12 text-gray-600" />
-              <h3 className="mt-4 text-lg font-medium text-white">No workspaces found</h3>
-              <p className="mt-2 text-gray-400">Create your first workspace to get started</p>
+            <div className="col-span-full rounded-[2.5rem] border border-dashed border-white/10 bg-white/[0.02] p-20 text-center backdrop-blur-sm">
+              <div className="mx-auto h-20 w-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
+                <Layout className="h-10 w-10 text-slate-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">The board is empty</h3>
+              <p className="mt-3 text-slate-400 max-w-xs mx-auto">Build your first digital headquarters and start collaborating today.</p>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="mt-8 text-primary font-bold hover:underline"
+              >
+                Launch your first workspace →
+              </button>
             </div>
           ) : (
             workspaces.map((ws) => (
               <div
                 key={ws.id}
                 onClick={() => handleSelectWorkspace(ws)}
-                className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-all hover:border-primary/50 hover:bg-white/10"
+                className="group relative flex flex-col cursor-pointer overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[#0c0c0c] p-8 transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:-translate-y-1"
               >
+                {/* Background Accent Glow */}
                 <div 
-                  className="absolute top-0 left-0 h-1 w-full" 
+                  className="absolute -right-20 -top-20 h-40 w-40 rounded-full blur-[80px] opacity-10 group-hover:opacity-30 transition-opacity duration-700"
                   style={{ backgroundColor: ws.accentColor }}
                 />
-                <div className="flex items-start justify-between">
-                  <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                    <Layout className="h-6 w-6" />
+                
+                <div className="flex items-start justify-between relative z-10">
+                  <div 
+                    className="h-14 w-14 rounded-2xl flex items-center justify-center text-white shadow-xl transition-transform duration-500 group-hover:scale-110"
+                    style={{ backgroundColor: `${ws.accentColor}20`, border: `1px solid ${ws.accentColor}40` }}
+                  >
+                    <Grid className="h-7 w-7" style={{ color: ws.accentColor }} />
                   </div>
-                  <ChevronRight className="h-5 w-5 text-gray-600 transition-transform group-hover:translate-x-1" />
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); /* Settings logic */ }}
+                      className="rounded-full p-2 text-slate-600 hover:bg-white/5 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </button>
+                    <ChevronRight className="h-5 w-5 text-slate-700 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+                  </div>
                 </div>
-                <h3 className="mt-4 text-xl font-bold">{ws.name}</h3>
-                <p className="mt-1 text-sm text-gray-400 line-clamp-2">
-                  {ws.description || 'No description provided'}
-                </p>
-                <div className="mt-6 flex items-center justify-between">
-                  <div className="flex items-center -space-x-2 overflow-hidden">
-                    {ws.members?.slice(0, 5).map((member) => (
+
+                <div className="mt-8 relative z-10">
+                  <h3 className="text-2xl font-bold text-white tracking-tight group-hover:text-white transition-colors">
+                    {ws.name}
+                  </h3>
+                  <p className="mt-3 text-slate-500 text-sm leading-relaxed line-clamp-2 font-medium">
+                    {ws.description || 'Modern collaboration space for high-performing teams.'}
+                  </p>
+                </div>
+
+                <div className="mt-auto pt-10 flex items-center justify-between relative z-10">
+                  <div className="flex items-center -space-x-3">
+                    {ws.members?.slice(0, 4).map((member) => (
                       <div
                         key={member.id}
                         title={member.user.name}
@@ -89,26 +122,26 @@ export default function WorkspacesPage() {
                           setCurrentWorkspace(ws);
                           router.push(`/team?highlight=${member.user.id}`);
                         }}
-                        className="h-8 w-8 rounded-full border-2 border-[#0a0a0a] bg-slate-800 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-110 transition-transform relative z-10 hover:z-20"
+                        className="h-10 w-10 rounded-full border-[3px] border-[#0c0c0c] bg-slate-900 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-115 hover:z-30 transition-all duration-300 ring-1 ring-white/10"
                       >
                         {member.user.avatar ? (
                           <img src={member.user.avatar} alt={member.user.name} className="h-full w-full object-cover" />
                         ) : (
-                          <span className="text-[10px] font-bold">{member.user.name.charAt(0)}</span>
+                          <span className="text-xs font-black text-slate-400">{member.user.name.charAt(0)}</span>
                         )}
                       </div>
                     ))}
-                    {ws.members?.length > 5 && (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#0a0a0a] bg-slate-800 text-[10px] font-bold text-gray-400 relative z-0">
-                        +{ws.members.length - 5}
+                    {ws.members?.length > 4 && (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#0c0c0c] bg-[#1a1a1a] text-[10px] font-black text-slate-500 ring-1 ring-white/10">
+                        +{ws.members.length - 4}
                       </div>
                     )}
                   </div>
                   <button 
                     onClick={(e) => handleInviteClick(e, ws)}
-                    className="flex items-center rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all border border-white/10"
+                    className="flex items-center rounded-xl bg-white/[0.03] px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/[0.08] hover:text-white transition-all border border-white/[0.05]"
                   >
-                    <UserPlus className="mr-1.5 h-3 w-3" />
+                    <UserPlus className="mr-2 h-3.5 w-3.5" />
                     Invite
                   </button>
                 </div>
@@ -116,7 +149,6 @@ export default function WorkspacesPage() {
             ))
           )}
         </div>
-
       </div>
 
       <CreateWorkspaceModal 
