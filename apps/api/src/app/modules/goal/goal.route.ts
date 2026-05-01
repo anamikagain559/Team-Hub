@@ -16,6 +16,13 @@ router.post(
 router.get('/:workspaceId', auth(), GoalController.getWorkspaceGoals);
 
 router.patch(
+  '/:goalId',
+  auth(),
+  validateRequest(GoalValidation.update),
+  GoalController.updateGoal
+);
+
+router.patch(
   '/:goalId/status',
   auth(),
   validateRequest(GoalValidation.updateStatus),
@@ -27,6 +34,31 @@ router.post(
   auth(),
   validateRequest(GoalValidation.createMilestone),
   GoalController.addMilestone
+);
+
+router.delete(
+  '/:goalId',
+  auth(),
+  GoalController.deleteGoal
+);
+
+router.patch(
+  '/milestones/:milestoneId',
+  auth(),
+  validateRequest(GoalValidation.updateMilestone),
+  GoalController.updateMilestone
+);
+
+router.delete(
+  '/milestones/:milestoneId',
+  auth(),
+  GoalController.deleteMilestone
+);
+
+router.get(
+  '/:goalId/activity',
+  auth(),
+  GoalController.getGoalActivity
 );
 
 export const GoalRoutes = router;

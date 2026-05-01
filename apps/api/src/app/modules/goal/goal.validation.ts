@@ -6,6 +6,16 @@ const create = z.object({
     description: z.string().optional(),
     dueDate: z.string().optional(),
     workspaceId: z.string().uuid(),
+    status: z.enum(['TODO', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+  }),
+});
+
+const update = z.object({
+  body: z.object({
+    title: z.string().min(2).optional(),
+    description: z.string().optional(),
+    dueDate: z.string().optional(),
+    status: z.enum(['TODO', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   }),
 });
 
@@ -22,8 +32,17 @@ const createMilestone = z.object({
   }),
 });
 
+const updateMilestone = z.object({
+  body: z.object({
+    title: z.string().min(2).optional(),
+    progress: z.number().min(0).max(100).optional(),
+  }),
+});
+
 export const GoalValidation = {
   create,
+  update,
   updateStatus,
   createMilestone,
+  updateMilestone,
 };
