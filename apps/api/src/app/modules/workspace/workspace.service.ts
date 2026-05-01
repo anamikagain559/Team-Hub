@@ -25,7 +25,21 @@ const getMyWorkspaces = async (userId: string) => {
   const result = await prisma.workspaceMember.findMany({
     where: { userId },
     include: {
-      workspace: true,
+      workspace: {
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
   return result.map((m) => m.workspace);
@@ -40,6 +54,19 @@ const inviteMember = async (workspaceId: string, email: string, role: WorkspaceR
     throw new Error('User not found with this email');
   }
 
+  const isAlreadyMember = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId: user.id,
+        workspaceId,
+      },
+    },
+  });
+
+  if (isAlreadyMember) {
+    throw new Error('User is already a member of this workspace');
+  }
+
   const result = await prisma.workspaceMember.create({
     data: {
       userId: user.id,
@@ -51,8 +78,26 @@ const inviteMember = async (workspaceId: string, email: string, role: WorkspaceR
   return result;
 };
 
+const getWorkspaceMembers = async (workspaceId: string) => {
+  const result = await prisma.workspaceMember.findMany({
+    where: { workspaceId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+        },
+      },
+    },
+  });
+  return result;
+};
+
 export const WorkspaceService = {
   createWorkspace,
   getMyWorkspaces,
   inviteMember,
+  getWorkspaceMembers,
 };

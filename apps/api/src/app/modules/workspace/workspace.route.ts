@@ -15,9 +15,11 @@ router.post(
 
 router.get('/', auth(), WorkspaceController.getMyWorkspaces);
 
+router.get('/:workspaceId/members', auth(), WorkspaceController.getWorkspaceMembers);
+
 router.post(
   '/:workspaceId/invite',
-  auth('ADMIN'), // Only system admins or workspace admins? I'll stick to auth() for now and check workspace role in service if needed
+  auth(),
   validateRequest(WorkspaceValidation.invite),
   WorkspaceController.inviteMember
 );

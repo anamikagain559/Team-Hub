@@ -1,15 +1,17 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Layout, Settings, Users, LogOut, ChevronRight } from 'lucide-react';
 import useWorkspaceStore from '../../../store/useWorkspaceStore';
-import useAuthStore from '../../../store/useAuthStore';
 import CreateWorkspaceModal from '../../../components/CreateWorkspaceModal';
+import InviteMemberModal from '../../../components/InviteMemberModal';
+import DashboardLayout from '../../../components/DashboardLayout';
+import { Plus, Layout, Settings, Users, ChevronRight, UserPlus, Grid } from 'lucide-react';
 
 export default function WorkspacesPage() {
   const { workspaces, fetchWorkspaces, setCurrentWorkspace, isLoading } = useWorkspaceStore();
-  const { logout } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [selectedWsForInvite, setSelectedWsForInvite] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,9 +23,15 @@ export default function WorkspacesPage() {
     router.push('/goals');
   };
 
+  const handleInviteClick = (e, workspace) => {
+    e.stopPropagation();
+    setSelectedWsForInvite(workspace);
+    setIsInviteModalOpen(true);
+  };
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+    <DashboardLayout>
+      <div className="max-w-5xl py-8 animate-in fade-in duration-500">
         <div className="flex items-center justify-between border-b border-white/10 pb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Your Workspaces</h1>
@@ -70,36 +78,60 @@ export default function WorkspacesPage() {
                 <p className="mt-1 text-sm text-gray-400 line-clamp-2">
                   {ws.description || 'No description provided'}
                 </p>
-                <div className="mt-6 flex items-center space-x-4 text-xs text-gray-500">
-                  <span className="flex items-center">
-                    <Users className="mr-1 h-3 w-3" />
-                    Members
-                  </span>
-                  <span className="flex items-center">
-                    <Settings className="mr-1 h-3 w-3" />
-                    Settings
-                  </span>
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="flex items-center -space-x-2 overflow-hidden">
+                    {ws.members?.slice(0, 5).map((member) => (
+                      <div
+                        key={member.id}
+                        title={member.user.name}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentWorkspace(ws);
+                          router.push(`/team?highlight=${member.user.id}`);
+                        }}
+                        className="h-8 w-8 rounded-full border-2 border-[#0a0a0a] bg-slate-800 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-110 transition-transform relative z-10 hover:z-20"
+                      >
+                        {member.user.avatar ? (
+                          <img src={member.user.avatar} alt={member.user.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] font-bold">{member.user.name.charAt(0)}</span>
+                        )}
+                      </div>
+                    ))}
+                    {ws.members?.length > 5 && (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#0a0a0a] bg-slate-800 text-[10px] font-bold text-gray-400 relative z-0">
+                        +{ws.members.length - 5}
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    onClick={(e) => handleInviteClick(e, ws)}
+                    className="flex items-center rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all border border-white/10"
+                  >
+                    <UserPlus className="mr-1.5 h-3 w-3" />
+                    Invite
+                  </button>
                 </div>
               </div>
             ))
           )}
         </div>
 
-        <div className="mt-16 flex justify-center">
-          <button 
-            onClick={logout}
-            className="flex items-center text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
-          </button>
-        </div>
       </div>
 
       <CreateWorkspaceModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
       />
-    </div>
+
+      {selectedWsForInvite && (
+        <InviteMemberModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          workspaceId={selectedWsForInvite.id}
+          onInviteSuccess={() => {}}
+        />
+      )}
+    </DashboardLayout>
   );
 }

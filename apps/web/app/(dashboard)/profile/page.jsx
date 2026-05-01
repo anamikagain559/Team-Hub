@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import useAuthStore from '@/store/useAuthStore';
 import { Camera, Mail, User, Shield, Check, Loader2 } from 'lucide-react';
+import DashboardLayout from '@/components/DashboardLayout';
+import Swal from 'sweetalert2';
 
 export default function ProfilePage() {
   const { user, fetchMe, updateProfile, isLoading, error } = useAuthStore();
   const [name, setName] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef(null);
@@ -36,8 +37,12 @@ export default function ProfilePage() {
     e.preventDefault();
     try {
       await updateProfile({ name }, selectedFile);
-      setIsSuccess(true);
-      setTimeout(() => setIsSuccess(false), 3000);
+      Swal.fire({
+        title: 'Success!',
+        text: 'Your profile has been updated successfully.',
+        icon: 'success',
+        confirmButtonColor: '#3b82f6',
+      });
       setSelectedFile(null);
     } catch (err) {
       console.error(err);
@@ -46,14 +51,17 @@ export default function ProfilePage() {
 
   if (!user && isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 animate-in fade-in duration-500">
+    <DashboardLayout>
+      <div className="animate-in fade-in duration-500">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Profile Settings</h1>
         <p className="text-slate-500 dark:text-slate-400">Manage your account information and preferences</p>
@@ -158,18 +166,12 @@ export default function ProfilePage() {
                     </>
                   )}
                 </button>
-                
-                {isSuccess && (
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium animate-in slide-in-from-left-2 duration-300">
-                    <Check className="w-5 h-5" />
-                    <span>Profile updated!</span>
-                  </div>
-                )}
               </div>
             </form>
           </div>
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

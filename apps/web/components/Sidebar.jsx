@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
-  User
+  User,
+  Grid
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import useWorkspaceStore from '../store/useWorkspaceStore';
@@ -21,6 +22,7 @@ import { useEffect } from 'react';
 
 const navItems = [
   { name: 'Dashboard', href: '/goals', icon: LayoutDashboard },
+  { name: 'Workspaces', href: '/workspaces', icon: Grid },
   { name: 'Goals', href: '/goals', icon: Target },
   { name: 'Announcements', href: '/announcements', icon: Megaphone },
   { name: 'Action Items', href: '/tasks', icon: CheckSquare },
@@ -47,26 +49,6 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="mb-8 px-2">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-            Current Workspace
-          </div>
-          <div className="mt-2 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-3">
-            <div className="flex items-center space-x-3 truncate">
-              <div 
-                className="h-2 w-2 rounded-full" 
-                style={{ backgroundColor: currentWorkspace?.accentColor || '#3b82f6' }}
-              />
-              <span className="truncate text-sm font-medium">
-                {currentWorkspace?.name || 'Loading...'}
-              </span>
-            </div>
-            <Link href="/workspaces">
-              <ChevronLeft className="h-4 w-4 text-gray-500 hover:text-white" />
-            </Link>
-          </div>
-        </div>
-
         <nav className="space-y-1">
           {navItems.map((item) => (
             <Link

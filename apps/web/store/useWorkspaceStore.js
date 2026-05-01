@@ -81,6 +81,38 @@ const useWorkspaceStore = create((set, get) => ({
       throw error;
     }
   },
+
+  fetchWorkspaceMembers: async (workspaceId) => {
+    const { accessToken } = useAuthStore.getState();
+    set({ isLoading: true });
+    try {
+      const response = await axios.get(`${API_URL}/workspaces/${workspaceId}/members`, {
+        headers: { Authorization: accessToken }
+      });
+      return response.data.data;
+    } catch (error) {
+      set({ isLoading: false });
+      return [];
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  inviteMember: async (workspaceId, inviteData) => {
+    const { accessToken } = useAuthStore.getState();
+    set({ isLoading: true });
+    try {
+      const response = await axios.post(`${API_URL}/workspaces/${workspaceId}/invite`, inviteData, {
+        headers: { Authorization: accessToken }
+      });
+      return response.data.data;
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 }));
 
 export default useWorkspaceStore;

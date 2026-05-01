@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useRouter } from 'next/navigation';
 import { X, Loader2, Layout, Palette } from 'lucide-react';
 import useWorkspaceStore from '../store/useWorkspaceStore';
+import Swal from 'sweetalert2';
 
 const workspaceSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -17,9 +19,10 @@ const COLORS = [
 ];
 
 export default function CreateWorkspaceModal({ isOpen, onClose }) {
-  const { createWorkspace } = useWorkspaceStore();
+  const { createWorkspace, setCurrentWorkspace } = useWorkspaceStore();
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(workspaceSchema),
@@ -30,9 +33,17 @@ export default function CreateWorkspaceModal({ isOpen, onClose }) {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      await createWorkspace({ ...data, accentColor: selectedColor });
+      const workspace = await createWorkspace({ ...data, accentColor: selectedColor });
+      setCurrentWorkspace(workspace);
+      Swal.fire({
+        title: 'Workspace Created!',
+        text: `Your workspace "${workspace.name}" is ready.`,
+        icon: 'success',
+        confirmButtonColor: '#3b82f6',
+      });
       reset();
       onClose();
+      router.push('/goals');
     } catch (err) {
       console.error(err);
     } finally {

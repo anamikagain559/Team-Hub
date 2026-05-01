@@ -6,7 +6,7 @@ import { WorkspaceService } from './workspace.service';
 
 const createWorkspace = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  const result = await WorkspaceService.createWorkspace(userId, req.body);
+  const result = await WorkspaceService.createWorkspace(userId as string, req.body);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
@@ -17,7 +17,7 @@ const createWorkspace = catchAsync(async (req: Request, res: Response) => {
 
 const getMyWorkspaces = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  const result = await WorkspaceService.getMyWorkspaces(userId);
+  const result = await WorkspaceService.getMyWorkspaces(userId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -29,7 +29,7 @@ const getMyWorkspaces = catchAsync(async (req: Request, res: Response) => {
 const inviteMember = catchAsync(async (req: Request, res: Response) => {
   const { workspaceId } = req.params;
   const { email, role } = req.body;
-  const result = await WorkspaceService.inviteMember(workspaceId, email, role);
+  const result = await WorkspaceService.inviteMember(workspaceId as string, email, role);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -38,8 +38,20 @@ const inviteMember = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getWorkspaceMembers = catchAsync(async (req: Request, res: Response) => {
+  const { workspaceId } = req.params;
+  const result = await WorkspaceService.getWorkspaceMembers(workspaceId as string);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Workspace members fetched successfully!',
+    data: result,
+  });
+});
+
 export const WorkspaceController = {
   createWorkspace,
   getMyWorkspaces,
   inviteMember,
+  getWorkspaceMembers,
 };
