@@ -29,7 +29,8 @@ const getMyWorkspaces = catchAsync(async (req: Request, res: Response) => {
 const inviteMember = catchAsync(async (req: Request, res: Response) => {
   const { workspaceId } = req.params;
   const { email, role } = req.body;
-  const result = await WorkspaceService.inviteMember(workspaceId as string, email, role);
+  const inviterId = req.user?.userId;
+  const result = await WorkspaceService.inviteMember(workspaceId as string, email, role, inviterId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

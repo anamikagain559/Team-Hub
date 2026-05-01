@@ -11,12 +11,13 @@ import { useSearchParams } from 'next/navigation';
 import Swal from 'sweetalert2';
 
 export default function TeamPage() {
-  const { currentWorkspace, fetchWorkspaceMembers, updateMemberRole, removeMember, fetchWorkspaces } = useWorkspaceStore();
+  const { currentWorkspace, fetchWorkspaceMembers, updateMemberRole, removeMember, fetchWorkspaces, fetchAllUsers } = useWorkspaceStore();
   const { user: currentUser } = useAuthStore();
   const [members, setMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [viewMode, setViewMode] = useState('workspace'); // 'workspace' or 'global'
   const searchParams = useSearchParams();
   const highlightUserId = searchParams.get('highlight');
 
@@ -28,16 +29,27 @@ export default function TeamPage() {
   }, []);
 
   const loadMembers = async () => {
-    if (currentWorkspace) {
-      setIsLoading(true);
-      try {
-        const data = await fetchWorkspaceMembers(currentWorkspace.id);
-        setMembers(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Failed to load members:', error);
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+    try {
+      let data;
+      if (viewMode === 'global') {
+        data = await fetchAllUsers();
+        // Format global users to look like workspace members for the table
+        data = data.map(u => ({
+          id: `global-${u.id}`,
+          role: u.role,
+          createdAt: u.createdAt,
+          user: u,
+          isGlobal: true
+        }));
+      } else if (currentWorkspace) {
+        data = await fetchWorkspaceMembers(currentWorkspace.id);
       }
+      setMembers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to load members:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -45,7 +57,7 @@ export default function TeamPage() {
     if (mounted) {
       loadMembers();
     }
-  }, [currentWorkspace, mounted]);
+  }, [currentWorkspace, mounted, viewMode]);
 
   if (!mounted) return null;
 
@@ -161,33 +173,62 @@ export default function TeamPage() {
   return (
     <DashboardLayout>
       <div className="animate-in fade-in duration-500">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-white">Team Members</h1>
-              <p className="mt-1 text-slate-400 font-medium">Manage collaborators in {currentWorkspace?.name}</p>
+              <h1 className="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">Team Hub</h1>
+              <p className="mt-1 text-muted-foreground font-bold uppercase tracking-[0.15em] text-[10px]">
+                {viewMode === 'workspace' ? `Active Collaborators in ${currentWorkspace?.name}` : 'Global User Directory'}
+              </p>
             </div>
-            <button 
-              onClick={() => setIsInviteModalOpen(true)}
-              className="flex items-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/20 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <UserPlus className="mr-2 h-4 w-4 stroke-[3px]" />
-              Invite Member
-            </button>
+
+            <div className="flex items-center gap-4">
+              {/* View Switcher Toggle */}
+              <div className="flex p-1 bg-muted/50 border border-border rounded-2xl">
+                <button 
+                  onClick={() => setViewMode('workspace')}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'workspace' ? "bg-background text-foreground shadow-xl" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Workspace
+                </button>
+                <button 
+                  onClick={() => setViewMode('global')}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'global' ? "bg-background text-foreground shadow-xl" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Global DB
+                </button>
+              </div>
+
+              {viewMode === 'workspace' && (
+                <button 
+                  onClick={() => setIsInviteModalOpen(true)}
+                  className="flex items-center rounded-2xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <UserPlus className="mr-2 h-4 w-4 stroke-[3px]" />
+                  Invite Member
+                </button>
+              )}
+            </div>
           </div>
 
           {isLoading ? (
             <div className="flex justify-center py-20">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-blue-600"></div>
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-muted border-t-primary"></div>
             </div>
           ) : (
             <div className="grid gap-4">
-              <div className="rounded-[2rem] border border-white/10 bg-[#080808] overflow-hidden shadow-2xl">
+              <div className="rounded-[2rem] border border-border bg-card overflow-hidden shadow-2xl">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                    <tr className="border-b border-border bg-muted/30 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                       <th className="px-8 py-5">Member</th>
-                      <th className="px-8 py-5">Workspace Role</th>
-                      <th className="px-8 py-5">Access Since</th>
+                      <th className="px-8 py-5">{viewMode === 'workspace' ? 'Workspace Role' : 'System Role'}</th>
+                      <th className="px-8 py-5">{viewMode === 'workspace' ? 'Access Since' : 'Joined Date'}</th>
                       <th className="px-8 py-5 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -196,22 +237,22 @@ export default function TeamPage() {
                       <tr 
                         key={member.id} 
                         className={cn(
-                          "group hover:bg-white/[0.02] transition-colors",
-                          highlightUserId === member.user.id ? "bg-blue-600/10" : ""
+                          "group hover:bg-muted/50 transition-colors",
+                          highlightUserId === member.user.id ? "bg-primary/10" : ""
                         )}
                       >
                         <td className="px-8 py-5">
                           <div className="flex items-center space-x-4">
-                            <div className="h-11 w-11 rounded-2xl bg-slate-800 flex items-center justify-center overflow-hidden border border-white/10 ring-2 ring-transparent group-hover:ring-blue-600/30 transition-all">
+                            <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
                               {member.user.avatar ? (
                                 <img src={member.user.avatar} alt={member.user.name} className="h-full w-full object-cover" />
                               ) : (
-                                <Users className="h-5 w-5 text-slate-400" />
+                                <Users className="h-5 w-5 text-muted-foreground" />
                               )}
                             </div>
                             <div>
-                              <div className="font-bold text-white text-base">{member.user.name} {member.user.id === currentUser?.id && <span className="text-[10px] font-black bg-blue-600/20 text-blue-500 px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">You</span>}</div>
-                              <div className="text-xs text-slate-500 flex items-center mt-0.5 font-medium">
+                              <div className="font-bold text-foreground text-base">{member.user.name} {member.user.id === currentUser?.id && <span className="text-[10px] font-black bg-primary/20 text-primary px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">You</span>}</div>
+                              <div className="text-xs text-muted-foreground flex items-center mt-0.5 font-medium">
                                 <Mail className="h-3 w-3 mr-1.5 opacity-50" />
                                 {member.user.email}
                               </div>
@@ -222,45 +263,49 @@ export default function TeamPage() {
                           <span className={cn(
                             "inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border shadow-sm",
                             member.role === 'ADMIN' 
-                              ? "bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-purple-500/5" 
-                              : "bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-blue-500/5"
+                              ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 shadow-purple-500/5" 
+                              : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-blue-500/5"
                           )}>
                             <Shield className="mr-1.5 h-3 w-3" />
                             {member.role}
                           </span>
                         </td>
-                        <td className="px-8 py-5 text-sm text-slate-400 font-bold tracking-tight">
+                        <td className="px-8 py-5 text-sm text-muted-foreground font-bold tracking-tight">
                           {new Date(member.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </td>
                         <td className="px-8 py-5 text-right relative">
                           <div className="flex justify-end items-center space-x-1">
                             <button 
                               onClick={() => handleViewDetails(member)}
-                              className="p-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-all"
                               title="View Details"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button 
-                              onClick={() => handleUpdateRole(member)}
-                              className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
-                              title="Edit Role"
-                            >
-                              <UserCog className="h-4 w-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleRemoveMember(member)}
-                              disabled={member.user.id === currentUser?.id}
-                              className={cn(
-                                "p-2 transition-all rounded-xl",
-                                member.user.id === currentUser?.id 
-                                  ? "opacity-20 cursor-not-allowed text-slate-700" 
-                                  : "text-slate-500 hover:text-red-500 hover:bg-red-500/10"
-                              )}
-                              title="Remove Member"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {viewMode === 'workspace' && (
+                              <>
+                                <button 
+                                  onClick={() => handleUpdateRole(member)}
+                                  className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                                  title="Edit Role"
+                                >
+                                  <UserCog className="h-4 w-4" />
+                                </button>
+                                <button 
+                                  onClick={() => handleRemoveMember(member)}
+                                  disabled={member.user.id === currentUser?.id}
+                                  className={cn(
+                                    "p-2 transition-all rounded-xl",
+                                    member.user.id === currentUser?.id 
+                                      ? "opacity-20 cursor-not-allowed text-muted" 
+                                      : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                  )}
+                                  title="Remove Member"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -270,12 +315,12 @@ export default function TeamPage() {
               </div>
               
               {members.length === 0 && (
-                <div className="rounded-[2rem] border-2 border-dashed border-white/5 p-16 text-center bg-white/[0.01]">
-                  <div className="h-20 w-20 rounded-3xl bg-slate-900 flex items-center justify-center mx-auto mb-6 ring-1 ring-white/10">
-                    <Users className="h-10 w-10 text-slate-600" />
+                <div className="rounded-[2rem] border-2 border-dashed border-border p-16 text-center bg-card">
+                  <div className="h-20 w-20 rounded-3xl bg-muted flex items-center justify-center mx-auto mb-6 ring-1 ring-border">
+                    <Users className="h-10 w-10 text-muted-foreground" />
                   </div>
-                  <h3 className="text-2xl font-black text-white tracking-tight">No members yet</h3>
-                  <p className="mt-2 text-slate-500 font-medium max-w-xs mx-auto">Invite your teammates to start building amazing things together in this workspace.</p>
+                  <h3 className="text-2xl font-black text-foreground tracking-tight">No members yet</h3>
+                  <p className="mt-2 text-muted-foreground font-medium max-w-xs mx-auto">Invite your teammates to start building amazing things together in this workspace.</p>
                 </div>
               )}
             </div>

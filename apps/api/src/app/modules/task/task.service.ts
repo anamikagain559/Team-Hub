@@ -1,14 +1,37 @@
 import { ActionItem } from '@prisma/client';
 import prisma from '../../shared/prisma';
+import { EmailHelper } from '../../helper/emailHelper';
 
-const createTask = async (data: any): Promise<ActionItem> => {
+const createTask = async (data: any, assignerId?: string): Promise<ActionItem> => {
+  const assigner = assignerId ? await prisma.user.findUnique({ where: { id: assignerId } }) : null;
+
   const result = await prisma.actionItem.create({
     data,
     include: {
-      assignee: { select: { name: true, avatar: true } },
+      assignee: { select: { name: true, avatar: true, email: true } },
       goal: { select: { title: true } },
     },
   });
+
+  // Send Email Notification to Assignee
+  if (result.assignee?.email) {
+    try {
+      const emailTemplate = EmailHelper.getTaskAssignmentTemplate(
+        assigner?.name || 'A team member',
+        result.title,
+        result.priority,
+        result.dueDate?.toISOString()
+      );
+      await EmailHelper.sendEmail(
+        result.assignee.email,
+        `New Task Assigned: ${result.title}`,
+        emailTemplate
+      );
+    } catch (error) {
+      console.error('Failed to send task assignment email:', error);
+    }
+  }
+
   return result;
 };
 

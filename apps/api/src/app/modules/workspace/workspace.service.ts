@@ -1,5 +1,6 @@
 import { Workspace, WorkspaceRole } from '@prisma/client';
 import prisma from '../../shared/prisma';
+import { EmailHelper } from '../../helper/emailHelper';
 
 const createWorkspace = async (userId: string, data: any): Promise<Workspace> => {
   const result = await prisma.$transaction(async (tx) => {
@@ -45,7 +46,7 @@ const getMyWorkspaces = async (userId: string) => {
   return result.map((m) => m.workspace);
 };
 
-const inviteMember = async (workspaceId: string, email: string, role: WorkspaceRole = WorkspaceRole.MEMBER) => {
+const inviteMember = async (workspaceId: string, email: string, role: WorkspaceRole = WorkspaceRole.MEMBER, inviterId?: string) => {
   const user = await prisma.user.findUnique({
     where: { email },
   });
@@ -53,6 +54,15 @@ const inviteMember = async (workspaceId: string, email: string, role: WorkspaceR
   if (!user) {
     throw new Error('User not found with this email');
   }
+
+  // Fetch workspace and inviter details for email
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId }
+  });
+
+  const inviter = inviterId ? await prisma.user.findUnique({
+    where: { id: inviterId }
+  }) : null;
 
   const isAlreadyMember = await prisma.workspaceMember.findUnique({
     where: {
@@ -74,6 +84,24 @@ const inviteMember = async (workspaceId: string, email: string, role: WorkspaceR
       role,
     },
   });
+
+  // Send Email Notification
+  if (workspace) {
+    try {
+      const emailTemplate = EmailHelper.getInvitationTemplate(
+        workspace.name,
+        inviter?.name || 'Someone'
+      );
+      await EmailHelper.sendEmail(
+        email,
+        `You've been invited to ${workspace.name} on TeamHub`,
+        emailTemplate
+      );
+    } catch (error) {
+      console.error('Failed to send invitation email:', error);
+      // We don't throw here to ensure the invitation still works even if email fails
+    }
+  }
 
   return result;
 };

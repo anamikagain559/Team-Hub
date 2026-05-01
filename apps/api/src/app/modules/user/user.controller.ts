@@ -32,7 +32,18 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.getAllUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Users fetched successfully!',
+    data: result,
+  });
+});
+
 export const UserController = {
   getMe,
   updateProfile,
+  getAllUsers,
 };

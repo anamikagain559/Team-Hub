@@ -12,6 +12,12 @@ router.get(
   UserController.getMe
 );
 
+router.get(
+  '/',
+  auth(UserRole.ADMIN, UserRole.MEMBER),
+  UserController.getAllUsers
+);
+
 router.patch(
   '/update-profile',
   auth(UserRole.ADMIN, UserRole.MEMBER),

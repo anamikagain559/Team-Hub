@@ -5,7 +5,8 @@ import sendResponse from '../../shared/sendResponse';
 import { TaskService } from './task.service';
 
 const createTask = catchAsync(async (req: Request, res: Response) => {
-  const result = await TaskService.createTask(req.body);
+  const assignerId = req.user?.userId;
+  const result = await TaskService.createTask(req.body, assignerId as string);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,

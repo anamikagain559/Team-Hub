@@ -414,6 +414,21 @@ const useWorkspaceStore = create((set, get) => ({
       throw error;
     }
   },
+
+  fetchAllUsers: async () => {
+    const { accessToken } = useAuthStore.getState();
+    set({ isLoading: true });
+    try {
+      const response = await axios.get(`${API_URL}/users`, {
+        headers: { Authorization: accessToken }
+      });
+      set({ isLoading: false });
+      return response.data.data;
+    } catch (error) {
+      set({ isLoading: false });
+      return [];
+    }
+  },
 }));
 
 export default useWorkspaceStore;
