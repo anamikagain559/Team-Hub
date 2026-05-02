@@ -243,27 +243,39 @@ export default function TeamPage() {
                       >
                         <td className="px-8 py-5">
                           <div className="flex items-center space-x-4">
-                            <div className="relative h-11 w-11 shrink-0 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
-                              {member.user.avatar ? (
-                                <img src={member.user.avatar} alt={member.user.name} className="h-full w-full object-cover" />
-                              ) : (
-                                <Users className="h-5 w-5 text-muted-foreground" />
-                              )}
-                              
-                              {/* Online status indicator */}
-                              {onlineUsers.has(member.user.id) && (
-                                <div className="absolute -right-1 -top-1 flex h-4 w-4">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-card"></span>
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-bold text-foreground text-base flex items-center">
-                                {member.user.name} 
-                                {member.user.id === currentUser?.id && <span className="text-[10px] font-black bg-primary/20 text-primary px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">You</span>}
-                                {onlineUsers.has(member.user.id) && <span className="ml-2 text-[8px] font-black uppercase text-green-500 tracking-[0.2em] animate-pulse">Online</span>}
-                              </div>
+                             <div className="relative h-12 w-12 shrink-0">
+                               <div className={cn(
+                                 "h-full w-full rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 transition-all duration-500",
+                                 onlineUsers.has(member.user.id) 
+                                   ? "border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-[#0a0a0a]" 
+                                   : "border-border"
+                               )}>
+                                 {member.user.avatar ? (
+                                   <img src={member.user.avatar} alt={member.user.name} className="h-full w-full object-cover" />
+                                 ) : (
+                                   <Users className="h-5 w-5 text-muted-foreground" />
+                                 )}
+                               </div>
+                               
+                               {/* Overflowing Online status indicator */}
+                               {onlineUsers.has(member.user.id) && (
+                                 <div className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4">
+                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                   <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-[#0a0a0a] shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
+                                 </div>
+                               )}
+                             </div>
+                             <div>
+                               <div className="font-bold text-foreground text-base flex items-center">
+                                 {member.user.name} 
+                                 {onlineUsers.has(member.user.id) && (
+                                   <div className="ml-3 flex items-center bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                                     <div className="h-1 w-1 rounded-full bg-green-500 mr-1.5 shadow-[0_0_8px_rgba(34,197,94,1)] animate-pulse" />
+                                     <span className="text-[8px] font-black uppercase text-green-500 tracking-widest">Live</span>
+                                   </div>
+                                 )}
+                                 {member.user.id === currentUser?.id && <span className="text-[10px] font-black bg-primary/20 text-primary px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">You</span>}
+                               </div>
                               <div className="text-xs text-muted-foreground flex items-center mt-0.5 font-medium">
                                 <Mail className="h-3 w-3 mr-1.5 opacity-50" />
                                 {member.user.email}

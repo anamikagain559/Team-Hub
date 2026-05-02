@@ -14,6 +14,7 @@ export default function AnnouncementsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState(null);
   const [commentText, setCommentText] = useState('');
+  const [isCommenting, setIsCommenting] = useState(false);
 
   useEffect(() => {
     if (currentWorkspace) {
@@ -31,13 +32,17 @@ export default function AnnouncementsPage() {
 
   const handleCommentSubmit = async (e, annId) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || isCommenting) return;
+    
+    setIsCommenting(true);
     try {
       await addComment(annId, commentText);
       setCommentText('');
       setActiveCommentId(null);
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsCommenting(false);
     }
   };
 
@@ -175,11 +180,11 @@ export default function AnnouncementsPage() {
                     
                     <form onSubmit={(e) => handleCommentSubmit(e, ann.id)} className="flex items-center space-x-3">
                       <MentionInput
-                        placeholder="Write a reply..."
+                        placeholder={isCommenting ? "Sending..." : "Write a reply..."}
                         value={commentText}
                         onChange={setCommentText}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
+                          if (e.key === 'Enter' && !e.shiftKey && commentText.trim() && !isCommenting) {
                             handleCommentSubmit(e, ann.id);
                           }
                         }}
@@ -187,10 +192,10 @@ export default function AnnouncementsPage() {
                       />
                       <button 
                         type="submit"
-                        disabled={!commentText.trim()}
+                        disabled={!commentText.trim() || isCommenting}
                         className="rounded-xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all disabled:opacity-50 shadow-md"
                       >
-                        Reply
+                        {isCommenting ? '...' : 'Reply'}
                       </button>
                     </form>
                   </div>

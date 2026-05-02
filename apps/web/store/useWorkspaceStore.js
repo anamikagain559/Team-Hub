@@ -113,13 +113,22 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.post(`${API_URL}/announcements/${announcementId}/comments`, { content }, {
         headers: { Authorization: accessToken }
       });
-      // Replace temp comment with real one
+      // Replace temp comment with real one, but check if it was already added by socket
       set((state) => ({
-        announcements: state.announcements.map((ann) => 
-          ann.id === announcementId 
-            ? { ...ann, comments: ann.comments.map(c => c.id === tempComment.id ? response.data.data : c) } 
-            : ann
-        )
+        announcements: state.announcements.map((ann) => {
+          if (ann.id !== announcementId) return ann;
+          
+          const realComment = response.data.data;
+          const alreadyExists = ann.comments?.some(c => c.id === realComment.id);
+          
+          if (alreadyExists) {
+            // Just remove the temp comment
+            return { ...ann, comments: ann.comments.filter(c => c.id !== tempComment.id) };
+          } else {
+            // Replace temp comment
+            return { ...ann, comments: ann.comments.map(c => c.id === tempComment.id ? realComment : c) };
+          }
+        })
       }));
       return response.data.data;
     } catch (error) {
