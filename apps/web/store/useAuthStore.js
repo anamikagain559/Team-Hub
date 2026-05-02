@@ -9,6 +9,7 @@ const useAuthStore = create((set) => ({
   accessToken: Cookies.get('accessToken') || null,
   isLoading: false,
   error: null,
+  notifications: [],
 
   login: async (email, password) => {
     set({ isLoading: true, error: null });
@@ -79,6 +80,39 @@ const useAuthStore = create((set) => ({
       set({ error: error.response?.data?.message || 'Update failed', isLoading: false });
       throw error;
     }
+  },
+
+  fetchNotifications: async () => {
+    const token = Cookies.get('accessToken');
+    if (!token) return;
+    try {
+      const response = await axios.get(`${API_URL}/notifications`, {
+        headers: { Authorization: token }
+      });
+      set({ notifications: response.data.data });
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
+  },
+
+  markNotificationAsRead: async (id) => {
+    const token = Cookies.get('accessToken');
+    try {
+      await axios.patch(`${API_URL}/notifications/${id}/read`, {}, {
+        headers: { Authorization: token }
+      });
+      set((state) => ({
+        notifications: state.notifications.map((n) => n.id === id ? { ...n, isRead: true } : n)
+      }));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  },
+  
+  addNotification: (notification) => {
+    set((state) => ({
+      notifications: [notification, ...state.notifications].slice(0, 50)
+    }));
   }
 }));
 

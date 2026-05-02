@@ -6,21 +6,14 @@ import useWorkspaceStore from '../../../store/useWorkspaceStore';
 import useAuthStore from '../../../store/useAuthStore';
 import { cn } from '../../../lib/utils';
 import CreateAnnouncementModal from '../../../components/CreateAnnouncementModal';
+import MentionInput from '../../../components/MentionInput';
 
 export default function AnnouncementsPage() {
-  const { currentWorkspace, announcements, fetchAnnouncements, isFetchingAnnouncements, addReaction, addComment } = useWorkspaceStore();
+  const { currentWorkspace, announcements, fetchAnnouncements, isFetchingAnnouncements, addReaction, addComment, can } = useWorkspaceStore();
   const { user } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState(null);
   const [commentText, setCommentText] = useState('');
-
-  const isWorkspaceAdmin = currentWorkspace?.members?.some(m => 
-    (m.userId === user?.id || m.user?.id === user?.id) && m.role === 'ADMIN'
-  );
-
-  // If user is not loaded yet, we can optionally show it or hide it.
-  // We'll show it if they are an admin OR if we haven't loaded the user yet.
-  const canPublish = isWorkspaceAdmin || user?.role === 'ADMIN' || !currentWorkspace?.members;
 
   useEffect(() => {
     if (currentWorkspace) {
@@ -51,15 +44,15 @@ export default function AnnouncementsPage() {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto py-8 animate-in fade-in duration-500">
-        <div className="flex items-center justify-between border-b border-white/10 pb-8">
+        <div className="flex items-center justify-between border-b border-border pb-8">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Announcements</h1>
-            <p className="mt-2 text-slate-400">Stay updated with the latest team news and updates.</p>
+            <h1 className="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">Announcements</h1>
+            <p className="mt-2 text-muted-foreground font-bold uppercase tracking-[0.1em] text-xs">Stay updated with the latest team news and updates.</p>
           </div>
-          {canPublish && (
+          {can('CREATE_ANNOUNCEMENT') && (
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+              className="flex items-center rounded-2xl bg-primary px-6 py-3 text-sm font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all shadow-lg shadow-primary/20"
             >
               <Plus className="mr-2 h-4 w-4 stroke-[3px]" />
               Publish
@@ -73,80 +66,79 @@ export default function AnnouncementsPage() {
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
             </div>
           ) : announcements.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-white/10 p-16 text-center bg-white/[0.02]">
-              <div className="mx-auto h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                <Megaphone className="h-8 w-8 text-slate-500" />
+            <div className="rounded-[2.5rem] border border-dashed border-border p-16 text-center bg-card">
+              <div className="mx-auto h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <Megaphone className="h-8 w-8 text-muted-foreground/30" />
               </div>
-              <h3 className="text-xl font-bold text-white">No announcements yet</h3>
-              <p className="mt-2 text-slate-400">Important workspace updates will appear here.</p>
+              <h3 className="text-xl font-black text-foreground">No announcements yet</h3>
+              <p className="mt-2 text-muted-foreground font-medium">Important workspace updates will appear here.</p>
             </div>
           ) : (
             announcements.map((ann) => (
               <div 
                 key={ann.id}
                 className={cn(
-                  "group relative overflow-hidden rounded-[2rem] border bg-[#0c0c0c] p-8 transition-all hover:border-white/20 hover:shadow-[0_10px_30px_rgba(0,0,0,0.3)]",
-                  ann.isPinned ? "border-primary/30 ring-1 ring-primary/20 bg-primary/[0.02]" : "border-white/[0.08]"
+                  "group relative overflow-hidden rounded-[2.5rem] border bg-card p-8 transition-all hover:border-primary/30 shadow-sm hover:shadow-2xl",
+                  ann.isPinned ? "border-primary/30 ring-1 ring-primary/20 bg-primary/[0.02]" : "border-border"
                 )}
               >
                 {ann.isPinned && (
-                  <div className="absolute top-0 right-8 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-b-xl flex items-center shadow-lg">
+                  <div className="absolute top-0 right-8 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-b-xl flex items-center shadow-lg">
                     <Pin className="mr-1.5 h-3 w-3 fill-current" />
                     Pinned
                   </div>
                 )}
                 
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="h-12 w-12 rounded-full overflow-hidden bg-slate-800 border border-white/10 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full overflow-hidden bg-muted border border-border flex items-center justify-center shadow-inner">
                     {ann.author?.avatar ? (
                       <img src={ann.author.avatar} alt={ann.author.name} className="h-full w-full object-cover" />
                     ) : (
-                      <span className="font-bold text-slate-400">{ann.author?.name?.charAt(0) || 'U'}</span>
+                      <span className="font-black text-muted-foreground">{ann.author?.name?.charAt(0) || 'U'}</span>
                     )}
                   </div>
                   <div>
-                    <h4 className="font-bold text-white">{ann.author?.name || 'Unknown User'}</h4>
-                    <span className="text-xs font-medium text-slate-500 flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
+                    <h4 className="font-black text-foreground">{ann.author?.name || 'Unknown User'}</h4>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center">
+                      <Clock className="h-3 w-3 mr-1 text-primary/60" />
                       {new Date(ann.createdAt).toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-bold text-white tracking-tight">{ann.title}</h3>
-                <div className="mt-4 text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                <h3 className="text-3xl font-black text-foreground tracking-tight">{ann.title}</h3>
+                <div className="mt-4 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium">
                   {ann.content}
                 </div>
 
                 {/* Reactions and Comments Toggle */}
-                <div className="mt-8 flex items-center justify-between border-t border-white/5 pt-6">
+                <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
                   <div className="flex items-center space-x-3">
-                    {/* Unique Reactions Count (Simple display for now) */}
                     <div className="flex items-center space-x-2">
                       <button 
                         onClick={() => handleReaction(ann.id, '👍')}
-                        className="flex items-center rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-xs font-medium hover:bg-white/10 transition-colors"
+                        className="flex items-center rounded-full bg-muted border border-border px-4 py-2 text-xs font-black hover:bg-foreground hover:text-background transition-all shadow-sm"
                       >
-                        👍 <span className="ml-1.5 text-slate-400">{ann.reactions?.filter(r => r.emoji === '👍').length || 0}</span>
+                        👍 <span className="ml-1.5 opacity-60">{ann.reactions?.filter(r => r.emoji === '👍').length || 0}</span>
                       </button>
                       <button 
                         onClick={() => handleReaction(ann.id, '🚀')}
-                        className="flex items-center rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-xs font-medium hover:bg-white/10 transition-colors"
+                        className="flex items-center rounded-full bg-muted border border-border px-4 py-2 text-xs font-black hover:bg-foreground hover:text-background transition-all shadow-sm"
                       >
-                        🚀 <span className="ml-1.5 text-slate-400">{ann.reactions?.filter(r => r.emoji === '🚀').length || 0}</span>
+                        🚀 <span className="ml-1.5 opacity-60">{ann.reactions?.filter(r => r.emoji === '🚀').length || 0}</span>
                       </button>
                       <button 
                         onClick={() => handleReaction(ann.id, '❤️')}
-                        className="flex items-center rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-xs font-medium hover:bg-white/10 transition-colors"
+                        className="flex items-center rounded-full bg-muted border border-border px-4 py-2 text-xs font-black hover:bg-foreground hover:text-background transition-all shadow-sm"
                       >
-                        ❤️ <span className="ml-1.5 text-slate-400">{ann.reactions?.filter(r => r.emoji === '❤️').length || 0}</span>
+                        ❤️ <span className="ml-1.5 opacity-60">{ann.reactions?.filter(r => r.emoji === '❤️').length || 0}</span>
                       </button>
                     </div>
                   </div>
 
                   <button 
                     onClick={() => setActiveCommentId(activeCommentId === ann.id ? null : ann.id)}
-                    className="flex items-center text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                    className="flex items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all"
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     {ann.comments?.length || 0} Comments
@@ -155,26 +147,26 @@ export default function AnnouncementsPage() {
 
                 {/* Comments Section */}
                 {activeCommentId === ann.id && (
-                  <div className="mt-6 border-t border-white/5 pt-6 animate-in slide-in-from-top-2 duration-300">
+                  <div className="mt-6 border-t border-border pt-6 animate-in slide-in-from-top-2 duration-300">
                     <div className="space-y-4 mb-6">
                       {ann.comments?.length === 0 ? (
-                        <p className="text-xs text-slate-500 italic text-center py-2">No comments yet. Be the first to reply!</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic text-center py-4 bg-muted/30 rounded-2xl">No comments yet. Be the first to reply!</p>
                       ) : (
                         ann.comments?.map(comment => (
-                          <div key={comment.id} className="flex space-x-3 bg-white/[0.02] p-4 rounded-2xl">
-                            <div className="h-8 w-8 shrink-0 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden">
+                          <div key={comment.id} className="flex space-x-3 bg-muted/50 p-5 rounded-[1.5rem] border border-border shadow-sm">
+                            <div className="h-10 w-10 shrink-0 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border shadow-inner">
                               {comment.user?.avatar ? (
                                 <img src={comment.user.avatar} alt={comment.user.name} className="h-full w-full object-cover" />
                               ) : (
-                                <span className="text-xs font-bold text-slate-400">{comment.user?.name?.charAt(0)}</span>
+                                <span className="text-xs font-black text-muted-foreground">{comment.user?.name?.charAt(0)}</span>
                               )}
                             </div>
                             <div>
                               <div className="flex items-baseline space-x-2">
-                                <span className="font-bold text-sm text-white">{comment.user?.name}</span>
-                                <span className="text-[10px] text-slate-500">{new Date(comment.createdAt).toLocaleDateString()}</span>
+                                <span className="font-black text-sm text-foreground">{comment.user?.name}</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">{new Date(comment.createdAt).toLocaleDateString()}</span>
                               </div>
-                              <p className="text-sm text-slate-300 mt-1">{comment.content}</p>
+                              <p className="text-sm text-muted-foreground mt-1 font-medium">{comment.content}</p>
                             </div>
                           </div>
                         ))
@@ -182,24 +174,21 @@ export default function AnnouncementsPage() {
                     </div>
                     
                     <form onSubmit={(e) => handleCommentSubmit(e, ann.id)} className="flex items-center space-x-3">
-                      <div className="h-8 w-8 shrink-0 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border border-white/10">
-                        {user?.avatar ? (
-                          <img src={user.avatar} alt="You" className="h-full w-full object-cover" />
-                        ) : (
-                          <User className="h-4 w-4 text-slate-500" />
-                        )}
-                      </div>
-                      <input
-                        type="text"
+                      <MentionInput
                         placeholder="Write a reply..."
                         value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                        onChange={setCommentText}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
+                            handleCommentSubmit(e, ann.id);
+                          }
+                        }}
+                        className="flex-1"
                       />
                       <button 
                         type="submit"
                         disabled={!commentText.trim()}
-                        className="rounded-xl bg-white/10 px-4 py-2 text-sm font-bold text-white hover:bg-white/20 transition-all disabled:opacity-50"
+                        className="rounded-xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all disabled:opacity-50 shadow-md"
                       >
                         Reply
                       </button>

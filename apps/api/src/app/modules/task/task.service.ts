@@ -1,6 +1,7 @@
 import { ActionItem } from '@prisma/client';
 import prisma from '../../shared/prisma';
 import { EmailHelper } from '../../helper/emailHelper';
+import { SocketHelper } from '../../helper/socketHelper';
 
 const createTask = async (data: any, assignerId?: string): Promise<ActionItem> => {
   const assigner = assignerId ? await prisma.user.findUnique({ where: { id: assignerId } }) : null;
@@ -32,6 +33,9 @@ const createTask = async (data: any, assignerId?: string): Promise<ActionItem> =
     }
   }
 
+  // Emit Socket Event
+  SocketHelper.emitToWorkspace(result.workspaceId, 'new_task', result);
+
   return result;
 };
 
@@ -52,6 +56,12 @@ const updateTaskStatus = async (taskId: string, status: string) => {
     where: { id: taskId },
     data: { status },
   });
+  // Emit Socket Event
+  SocketHelper.emitToWorkspace(result.workspaceId, 'task_status_updated', {
+    taskId,
+    status,
+  });
+
   return result;
 };
 

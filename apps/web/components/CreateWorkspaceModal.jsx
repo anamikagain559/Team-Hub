@@ -55,49 +55,49 @@ export default function CreateWorkspaceModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#171717] shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between border-b border-white/10 p-6">
-          <h2 className="text-xl font-bold text-white">Create Workspace</h2>
-          <button onClick={onClose} className="rounded-lg p-1 text-gray-500 hover:bg-white/10 hover:text-white transition-all">
-            <X className="h-5 w-5" />
+      <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-border bg-card shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-border p-6 bg-muted/30">
+          <h2 className="text-xl font-black tracking-tight text-foreground uppercase">Create Workspace</h2>
+          <button onClick={onClose} className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+            <X className="h-5 w-5 stroke-[3px]" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          <div className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-8">
+          <div className="space-y-6">
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Workspace Name</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Workspace Name</label>
               <input
                 {...register('name')}
                 placeholder="e.g. Design Team, Q3 Roadmap"
-                className="mt-2 block w-full rounded-xl border border-white/10 bg-white/5 py-3 px-4 text-white placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                className="mt-3 block w-full rounded-2xl border border-border bg-muted/50 py-4 px-5 text-foreground placeholder-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10 sm:text-sm font-medium transition-all"
               />
-              {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
+              {errors.name && <p className="mt-2 text-[10px] font-bold text-destructive uppercase tracking-widest">{errors.name.message}</p>}
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Description (Optional)</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Description (Optional)</label>
               <textarea
                 {...register('description')}
                 placeholder="What is this workspace for?"
                 rows={3}
-                className="mt-2 block w-full rounded-xl border border-white/10 bg-white/5 py-3 px-4 text-white placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                className="mt-3 block w-full rounded-2xl border border-border bg-muted/50 py-4 px-5 text-foreground placeholder-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10 sm:text-sm font-medium transition-all"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center">
-                <Palette className="mr-2 h-3 w-3" />
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center">
+                <Palette className="mr-2 h-3.5 w-3.5" />
                 Accent Color
               </label>
-              <div className="mt-3 flex flex-wrap gap-3">
+              <div className="mt-4 flex flex-wrap gap-3">
                 {COLORS.map((color) => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => setSelectedColor(color)}
-                    className={`h-8 w-8 rounded-full border-2 transition-all ${
-                      selectedColor === color ? 'border-white scale-110' : 'border-transparent'
+                    className={`h-9 w-9 rounded-full border-4 transition-all shadow-sm ${
+                      selectedColor === color ? 'border-foreground scale-110 shadow-lg' : 'border-transparent hover:scale-105'
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -106,18 +106,18 @@ export default function CreateWorkspaceModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          <div className="flex space-x-3">
+          <div className="flex space-x-4 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-all"
+              className="flex-1 rounded-2xl border border-border bg-muted/50 py-4 text-xs font-black uppercase tracking-widest text-muted-foreground hover:bg-foreground hover:text-background transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 flex justify-center items-center rounded-xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-all disabled:opacity-50"
+              className="flex-1 flex justify-center items-center rounded-2xl bg-primary py-4 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
             >
               {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Create Workspace'}
             </button>

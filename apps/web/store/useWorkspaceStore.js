@@ -32,9 +32,14 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.post(`${API_URL}/announcements`, announcementData, {
         headers: { Authorization: accessToken }
       });
-      set((state) => ({
-        announcements: [response.data.data, ...state.announcements]
-      }));
+      set((state) => {
+        const exists = state.announcements.some((ann) => ann.id === response.data.data.id);
+        if (exists) return { isLoading: false };
+        return {
+          announcements: [response.data.data, ...state.announcements],
+          isLoading: false
+        };
+      });
       return response.data.data;
     } catch (error) {
       throw error;
@@ -43,34 +48,82 @@ const useWorkspaceStore = create((set, get) => ({
 
   addReaction: async (announcementId, emoji) => {
     const { accessToken } = useAuthStore.getState();
+    const { user } = useAuthStore.getState();
+    const previousAnnouncements = get().announcements;
+
+    // Optimistically update reactions
+    set((state) => ({
+      announcements: state.announcements.map((ann) => {
+        if (ann.id === announcementId) {
+          const reactions = ann.reactions || [];
+          const existingReaction = reactions.find(r => r.emoji === emoji && (r.userId === user?.id || r.user?.id === user?.id));
+          
+          if (existingReaction) {
+            // Remove reaction
+            return {
+              ...ann,
+              reactions: reactions.filter(r => r.id !== existingReaction.id)
+            };
+          } else {
+            // Add reaction
+            return {
+              ...ann,
+              reactions: [...reactions, { id: 'temp-id', emoji, userId: user?.id, user: { id: user?.id, name: user?.name } }]
+            };
+          }
+        }
+        return ann;
+      })
+    }));
+
     try {
-      const response = await axios.post(`${API_URL}/announcements/${announcementId}/reactions`, { emoji }, {
+      await axios.post(`${API_URL}/announcements/${announcementId}/reactions`, { emoji }, {
         headers: { Authorization: accessToken }
       });
-      // Refresh announcements to get new reactions
-      const currentWorkspace = get().currentWorkspace;
-      if (currentWorkspace) {
-        get().fetchAnnouncements(currentWorkspace.id);
-      }
-      return response.data.data;
+      // Optionally re-fetch to get real IDs, but for simple emoji count it's fine
     } catch (error) {
+      set({ announcements: previousAnnouncements });
       throw error;
     }
   },
 
   addComment: async (announcementId, content) => {
     const { accessToken } = useAuthStore.getState();
+    const { user } = useAuthStore.getState();
+    const previousAnnouncements = get().announcements;
+
+    const tempComment = {
+      id: `temp-${Date.now()}`,
+      content,
+      userId: user?.id,
+      user: { id: user?.id, name: user?.name, avatar: user?.avatar },
+      createdAt: new Date().toISOString()
+    };
+
+    // Optimistically add comment
+    set((state) => ({
+      announcements: state.announcements.map((ann) => 
+        ann.id === announcementId 
+          ? { ...ann, comments: [...(ann.comments || []), tempComment] } 
+          : ann
+      )
+    }));
+
     try {
       const response = await axios.post(`${API_URL}/announcements/${announcementId}/comments`, { content }, {
         headers: { Authorization: accessToken }
       });
-      // Refresh announcements to get new comments
-      const currentWorkspace = get().currentWorkspace;
-      if (currentWorkspace) {
-        get().fetchAnnouncements(currentWorkspace.id);
-      }
+      // Replace temp comment with real one
+      set((state) => ({
+        announcements: state.announcements.map((ann) => 
+          ann.id === announcementId 
+            ? { ...ann, comments: ann.comments.map(c => c.id === tempComment.id ? response.data.data : c) } 
+            : ann
+        )
+      }));
       return response.data.data;
     } catch (error) {
+      set({ announcements: previousAnnouncements });
       throw error;
     }
   },
@@ -155,10 +208,14 @@ const useWorkspaceStore = create((set, get) => ({
         headers: { Authorization: accessToken }
       });
       const newGoal = response.data.data;
-      set((state) => ({ 
-        goals: [newGoal, ...state.goals],
-        isLoading: false 
-      }));
+      set((state) => {
+        const exists = state.goals.some((g) => g.id === newGoal.id);
+        if (exists) return { isLoading: false };
+        return { 
+          goals: [newGoal, ...state.goals],
+          isLoading: false 
+        };
+      });
       return newGoal;
     } catch (error) {
       set({ isLoading: false });
@@ -184,14 +241,19 @@ const useWorkspaceStore = create((set, get) => ({
 
   deleteGoal: async (goalId) => {
     const { accessToken } = useAuthStore.getState();
+    const previousGoals = get().goals;
+
+    // Optimistic delete
+    set((state) => ({
+      goals: state.goals.filter((g) => g.id !== goalId)
+    }));
+
     try {
       await axios.delete(`${API_URL}/goals/${goalId}`, {
         headers: { Authorization: accessToken }
       });
-      set((state) => ({
-        goals: state.goals.filter((g) => g.id !== goalId)
-      }));
     } catch (error) {
+      set({ goals: previousGoals });
       throw error;
     }
   },
@@ -246,22 +308,22 @@ const useWorkspaceStore = create((set, get) => ({
 
   deleteMilestone: async (goalId, milestoneId) => {
     const { accessToken } = useAuthStore.getState();
+    const previousGoals = get().goals;
+
+    set((state) => ({
+      goals: state.goals.map((g) => 
+        g.id === goalId 
+          ? { ...g, milestones: g.milestones.filter((m) => m.id !== milestoneId) } 
+          : g
+      )
+    }));
+
     try {
       await axios.delete(`${API_URL}/goals/milestones/${milestoneId}`, {
         headers: { Authorization: accessToken }
       });
-      
-      set((state) => ({
-        goals: state.goals.map((g) => 
-          g.id === goalId 
-            ? { 
-                ...g, 
-                milestones: g.milestones.filter((m) => m.id !== milestoneId) 
-              } 
-            : g
-        )
-      }));
     } catch (error) {
+      set({ goals: previousGoals });
       throw error;
     }
   },
@@ -299,10 +361,14 @@ const useWorkspaceStore = create((set, get) => ({
         headers: { Authorization: accessToken }
       });
       const newTask = response.data.data;
-      set((state) => ({ 
-        tasks: [newTask, ...state.tasks],
-        isLoading: false 
-      }));
+      set((state) => {
+        const exists = state.tasks.some((t) => t.id === newTask.id);
+        if (exists) return { isLoading: false };
+        return { 
+          tasks: [newTask, ...state.tasks],
+          isLoading: false 
+        };
+      });
       return newTask;
     } catch (error) {
       set({ isLoading: false });
@@ -348,14 +414,19 @@ const useWorkspaceStore = create((set, get) => ({
 
   deleteTask: async (taskId) => {
     const { accessToken } = useAuthStore.getState();
+    const previousTasks = get().tasks;
+
+    // Optimistic delete
+    set((state) => ({
+      tasks: state.tasks.filter((t) => t.id !== taskId)
+    }));
+
     try {
       await axios.delete(`${API_URL}/tasks/${taskId}`, {
         headers: { Authorization: accessToken }
       });
-      set((state) => ({
-        tasks: state.tasks.filter((t) => t.id !== taskId)
-      }));
     } catch (error) {
+      set({ tasks: previousTasks });
       throw error;
     }
   },
@@ -428,6 +499,30 @@ const useWorkspaceStore = create((set, get) => ({
       set({ isLoading: false });
       return [];
     }
+  },
+
+  // RBAC Helper
+  can: (action) => {
+    const { currentWorkspace } = get();
+    if (!currentWorkspace) return false;
+    
+    const role = currentWorkspace.currentUserRole;
+    
+    const permissions = {
+      ADMIN: [
+        'CREATE_GOAL', 'UPDATE_GOAL', 'DELETE_GOAL',
+        'CREATE_TASK', 'UPDATE_TASK', 'DELETE_TASK',
+        'CREATE_ANNOUNCEMENT', 'DELETE_ANNOUNCEMENT',
+        'INVITE_MEMBER', 'MANAGE_MEMBERS', 'UPDATE_WORKSPACE_SETTINGS'
+      ],
+      MEMBER: [
+        'CREATE_TASK', 'UPDATE_TASK', // Members can manage tasks
+        'CREATE_ANNOUNCEMENT', // Members can post announcements
+        // Members cannot delete goals or manage workspace
+      ]
+    };
+
+    return permissions[role]?.includes(action) || false;
   },
 }));
 

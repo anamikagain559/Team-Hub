@@ -8,7 +8,7 @@ import router from './app/routes';
 const app: Application = express();
 
 app.use(cors({
-  origin: true,
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));
 

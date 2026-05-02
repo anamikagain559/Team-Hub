@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { X, Loader2, Megaphone, Pin } from 'lucide-react';
 import useWorkspaceStore from '../store/useWorkspaceStore';
+import MentionTextarea from './MentionTextarea';
 import Swal from 'sweetalert2';
 
 export default function CreateAnnouncementModal({ isOpen, onClose }) {
@@ -103,14 +104,11 @@ export default function CreateAnnouncementModal({ isOpen, onClose }) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-300">Message</label>
-            <textarea
-              required
-              minLength={10}
+            <MentionTextarea
               rows={6}
               placeholder="What do you want to share with the team? (Minimum 10 characters)"
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-slate-600 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
+              onChange={(content) => setFormData({ ...formData, content })}
             />
             {formData.content.length > 0 && formData.content.trim().length < 10 && (
               <p className="text-xs text-red-400">Message must be at least 10 characters.</p>

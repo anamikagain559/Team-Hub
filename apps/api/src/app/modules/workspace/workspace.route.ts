@@ -4,6 +4,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import { WorkspaceController } from './workspace.controller';
 import { WorkspaceValidation } from './workspace.validation';
 
+import workspaceAuth from '../../middlewares/workspaceAuth';
+
 const router = express.Router();
 
 router.post(
@@ -20,6 +22,7 @@ router.get('/:workspaceId/members', auth(), WorkspaceController.getWorkspaceMemb
 router.post(
   '/:workspaceId/invite',
   auth(),
+  workspaceAuth('ADMIN'),
   validateRequest(WorkspaceValidation.invite),
   WorkspaceController.inviteMember
 );
@@ -27,12 +30,14 @@ router.post(
 router.patch(
   '/members/:memberId',
   auth(),
+  workspaceAuth('ADMIN'), // Assumes workspaceId is passed in body/query
   WorkspaceController.updateMemberRole
 );
 
 router.delete(
   '/members/:memberId',
   auth(),
+  workspaceAuth('ADMIN'), // Assumes workspaceId is passed in body/query
   WorkspaceController.removeMember
 );
 

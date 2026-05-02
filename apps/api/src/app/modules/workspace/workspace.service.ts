@@ -16,7 +16,10 @@ const createWorkspace = async (userId: string, data: any): Promise<Workspace> =>
       },
     });
 
-    return workspace;
+    return {
+      ...workspace,
+      currentUserRole: WorkspaceRole.ADMIN,
+    };
   });
 
   return result;
@@ -43,7 +46,10 @@ const getMyWorkspaces = async (userId: string) => {
       },
     },
   });
-  return result.map((m) => m.workspace);
+  return result.map((m) => ({
+    ...m.workspace,
+    currentUserRole: m.role,
+  }));
 };
 
 const inviteMember = async (workspaceId: string, email: string, role: WorkspaceRole = WorkspaceRole.MEMBER, inviterId?: string) => {

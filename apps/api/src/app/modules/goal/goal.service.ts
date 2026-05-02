@@ -1,5 +1,6 @@
 import { Goal, GoalStatus } from '@prisma/client';
 import prisma from '../../shared/prisma';
+import { SocketHelper } from '../../helper/socketHelper';
 
 const createGoal = async (userId: string, data: any): Promise<Goal> => {
   const goalData = { ...data };
@@ -38,6 +39,9 @@ const createGoal = async (userId: string, data: any): Promise<Goal> => {
       content: `Goal "${result.title}" created`,
     },
   });
+
+  // Emit Socket Event
+  SocketHelper.emitToWorkspace(result.workspaceId, 'new_goal', result);
 
   return result;
 };
@@ -132,6 +136,12 @@ const updateGoalStatus = async (userId: string, goalId: string, status: GoalStat
       goalId,
       content: `Goal status updated to ${status}`,
     },
+  });
+
+  // Emit Socket Event
+  SocketHelper.emitToWorkspace(result.workspaceId, 'goal_status_updated', {
+    goalId,
+    status,
   });
 
   return result;

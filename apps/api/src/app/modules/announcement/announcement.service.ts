@@ -1,6 +1,7 @@
 import { Announcement } from '@prisma/client';
 import prisma from '../../shared/prisma';
 import { EmailHelper } from '../../helper/emailHelper';
+import { SocketHelper } from '../../helper/socketHelper';
 
 const createAnnouncement = async (userId: string, data: any): Promise<Announcement> => {
   const member = await prisma.workspaceMember.findUnique({
@@ -25,6 +26,9 @@ const createAnnouncement = async (userId: string, data: any): Promise<Announceme
       author: { select: { name: true, avatar: true } },
     }
   });
+
+  // Emit Socket Event
+  SocketHelper.emitToWorkspace(data.workspaceId, 'new_announcement', result);
 
   // Handle Mentions in Announcement Body
   if (result) {
@@ -71,7 +75,17 @@ const addReaction = async (userId: string, announcementId: string, emoji: string
       announcementId,
       emoji,
     },
+    include: {
+      user: { select: { id: true, name: true } },
+      announcement: { select: { workspaceId: true } }
+    }
   });
+
+  SocketHelper.emitToWorkspace(result.announcement.workspaceId, 'new_reaction', {
+    announcementId,
+    reaction: result
+  });
+
   return result;
 };
 
@@ -85,7 +99,17 @@ const addComment = async (userId: string, announcementId: string, content: strin
       announcementId,
       content,
     },
+    include: {
+      user: { select: { id: true, name: true, avatar: true } }
+    }
   });
+
+  if (announcement) {
+    SocketHelper.emitToWorkspace(announcement.workspaceId, 'new_comment', {
+      announcementId,
+      comment: result
+    });
+  }
 
   // Handle Mentions in Comment
   if (result && announcement) {

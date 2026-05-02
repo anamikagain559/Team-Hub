@@ -3,6 +3,8 @@ import "./globals.css";
 
 import { ThemeProvider } from "../components/ThemeProvider";
 
+import { SocketProvider } from "../context/SocketContext";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -20,7 +22,9 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SocketProvider>
+            {children}
+          </SocketProvider>
         </ThemeProvider>
       </body>
     </html>

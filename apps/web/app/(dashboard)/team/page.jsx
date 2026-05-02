@@ -9,10 +9,12 @@ import InviteMemberModal from '@/components/InviteMemberModal';
 import { cn } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 import Swal from 'sweetalert2';
+import { useSocket } from '@/context/SocketContext';
 
 export default function TeamPage() {
-  const { currentWorkspace, fetchWorkspaceMembers, updateMemberRole, removeMember, fetchWorkspaces, fetchAllUsers } = useWorkspaceStore();
+  const { currentWorkspace, fetchWorkspaceMembers, updateMemberRole, removeMember, fetchWorkspaces, fetchAllUsers, can } = useWorkspaceStore();
   const { user: currentUser } = useAuthStore();
+  const { onlineUsers } = useSocket();
   const [members, setMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -34,7 +36,6 @@ export default function TeamPage() {
       let data;
       if (viewMode === 'global') {
         data = await fetchAllUsers();
-        // Format global users to look like workspace members for the table
         data = data.map(u => ({
           id: `global-${u.id}`,
           role: u.role,
@@ -182,7 +183,6 @@ export default function TeamPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* View Switcher Toggle */}
               <div className="flex p-1 bg-muted/50 border border-border rounded-2xl">
                 <button 
                   onClick={() => setViewMode('workspace')}
@@ -204,7 +204,7 @@ export default function TeamPage() {
                 </button>
               </div>
 
-              {viewMode === 'workspace' && (
+              {viewMode === 'workspace' && can('INVITE_MEMBER') && (
                 <button 
                   onClick={() => setIsInviteModalOpen(true)}
                   className="flex items-center rounded-2xl bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
@@ -243,15 +243,27 @@ export default function TeamPage() {
                       >
                         <td className="px-8 py-5">
                           <div className="flex items-center space-x-4">
-                            <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
+                            <div className="relative h-11 w-11 shrink-0 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
                               {member.user.avatar ? (
                                 <img src={member.user.avatar} alt={member.user.name} className="h-full w-full object-cover" />
                               ) : (
                                 <Users className="h-5 w-5 text-muted-foreground" />
                               )}
+                              
+                              {/* Online status indicator */}
+                              {onlineUsers.has(member.user.id) && (
+                                <div className="absolute -right-1 -top-1 flex h-4 w-4">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-card"></span>
+                                </div>
+                              )}
                             </div>
                             <div>
-                              <div className="font-bold text-foreground text-base">{member.user.name} {member.user.id === currentUser?.id && <span className="text-[10px] font-black bg-primary/20 text-primary px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">You</span>}</div>
+                              <div className="font-bold text-foreground text-base flex items-center">
+                                {member.user.name} 
+                                {member.user.id === currentUser?.id && <span className="text-[10px] font-black bg-primary/20 text-primary px-2 py-0.5 rounded-full ml-1 uppercase tracking-widest">You</span>}
+                                {onlineUsers.has(member.user.id) && <span className="ml-2 text-[8px] font-black uppercase text-green-500 tracking-[0.2em] animate-pulse">Online</span>}
+                              </div>
                               <div className="text-xs text-muted-foreground flex items-center mt-0.5 font-medium">
                                 <Mail className="h-3 w-3 mr-1.5 opacity-50" />
                                 {member.user.email}
@@ -282,7 +294,7 @@ export default function TeamPage() {
                             >
                               <Eye className="h-4 w-4" />
                             </button>
-                            {viewMode === 'workspace' && (
+                            {viewMode === 'workspace' && can('MANAGE_MEMBERS') && (
                               <>
                                 <button 
                                   onClick={() => handleUpdateRole(member)}
@@ -338,4 +350,3 @@ export default function TeamPage() {
     </DashboardLayout>
   );
 }
-

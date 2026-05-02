@@ -1,6 +1,6 @@
 import { Server } from 'http';
 import app from './app';
-import { Server as SocketIOServer } from 'socket.io';
+import { SocketHelper } from './app/helper/socketHelper';
 
 const port = process.env.PORT || 5000;
 
@@ -9,20 +9,8 @@ async function main() {
     console.log(`Server is running on port ${port}`);
   });
 
-  const io = new SocketIOServer(server, {
-    cors: {
-      origin: "*", // Adjust in production
-      methods: ["GET", "POST"]
-    }
-  });
-
-  io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-
-    socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
-    });
-  });
+  // Initialize Socket.io via helper
+  SocketHelper.init(server);
 
   const exitHandler = () => {
     if (server) {

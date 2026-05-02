@@ -5,6 +5,7 @@ import { GoalRoutes } from '../modules/goal/goal.route';
 import { AnnouncementRoutes } from '../modules/announcement/announcement.route';
 import { TaskRoutes } from '../modules/task/task.route';
 import { UserRoutes } from '../modules/user/user.route';
+import { NotificationRoutes } from '../modules/notification/notification.route';
 
 const router = express.Router();
 
@@ -32,6 +33,10 @@ const moduleRoutes = [
   {
     path: '/users',
     route: UserRoutes,
+  },
+  {
+    path: '/notifications',
+    route: NotificationRoutes,
   },
 ];
 

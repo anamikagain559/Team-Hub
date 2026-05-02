@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import prisma from '../shared/prisma';
+import { NotificationService } from '../modules/notification/notification.service';
 
 const config = {
   host: process.env.EMAIL_HOST,
@@ -31,17 +32,25 @@ const handleMentions = async (content: string, workspaceId: string, authorName: 
   // Find members whose names match the mentions
   const members = await prisma.workspaceMember.findMany({
     where: { workspaceId },
-    include: { user: { select: { name: true, email: true } } }
+    include: { user: { select: { id: true, name: true, email: true } } }
   });
 
   for (const member of members) {
     if (mentionNames.includes(member.user.name.toLowerCase().replace(/\s+/g, ''))) {
+      // 1. Send Email
       const template = getMentionTemplate(authorName, content, sourceTitle);
-      await sendEmail(
+      sendEmail(
         member.user.email,
         `You were mentioned by ${authorName}`,
         template
-      );
+      ).catch(e => console.error('Email failed:', e));
+
+      // 2. Create In-App Notification
+      NotificationService.createNotification({
+        userId: member.user.id,
+        type: 'MENTION',
+        content: `${authorName} mentioned you in "${sourceTitle}"`,
+      }).catch(e => console.error('Notification failed:', e));
     }
   }
 };
