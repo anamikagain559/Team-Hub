@@ -26,14 +26,13 @@ const getWorkspaceTasks = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const updateTaskStatus = catchAsync(async (req: Request, res: Response) => {
+const updateTask = catchAsync(async (req: Request, res: Response) => {
   const { taskId } = req.params;
-  const { status } = req.body;
-  const result = await TaskService.updateTaskStatus(taskId as string, status as string);
+  const result = await TaskService.updateTask(taskId as string, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Task status updated successfully!',
+    message: 'Task updated successfully!',
     data: result,
   });
 });
@@ -49,9 +48,22 @@ const deleteTask = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateTaskStatus = catchAsync(async (req: Request, res: Response) => {
+  const { taskId } = req.params;
+  const { status } = req.body;
+  const result = await TaskService.updateTaskStatus(taskId as string, status as string);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Task status updated successfully!',
+    data: result,
+  });
+});
+
 export const TaskController = {
   createTask,
   getWorkspaceTasks,
   updateTaskStatus,
+  updateTask,
   deleteTask,
 };

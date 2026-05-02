@@ -76,4 +76,25 @@ export const WorkspaceController = {
       data: result,
     });
   }),
+  updateWorkspace: catchAsync(async (req: Request, res: Response) => {
+    const { workspaceId } = req.params;
+    const userId = req.user?.userId;
+    const result = await WorkspaceService.updateWorkspace(workspaceId, userId as string, req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Workspace updated successfully!',
+      data: result,
+    });
+  }),
+  deleteWorkspace: catchAsync(async (req: Request, res: Response) => {
+    const { workspaceId } = req.params;
+    const result = await WorkspaceService.deleteWorkspace(workspaceId);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Workspace deleted successfully!',
+      data: result,
+    });
+  }),
 };

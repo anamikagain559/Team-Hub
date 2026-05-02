@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 export default function CreateTaskModal({ isOpen, onClose }) {
   const { currentWorkspace, createTask, fetchWorkspaceMembers, goals, fetchGoals } = useWorkspaceStore();
   const [members, setMembers] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -13,6 +14,7 @@ export default function CreateTaskModal({ isOpen, onClose }) {
     assigneeId: '',
     goalId: '',
     priority: 'MEDIUM',
+    status: 'TODO',
     dueDate: '',
   });
 
@@ -40,6 +42,7 @@ export default function CreateTaskModal({ isOpen, onClose }) {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await createTask({
         ...formData,
@@ -58,7 +61,7 @@ export default function CreateTaskModal({ isOpen, onClose }) {
         timer: 3000,
       });
       onClose();
-      setFormData({ title: '', description: '', assigneeId: '', goalId: '', priority: 'MEDIUM', dueDate: '' });
+      setFormData({ title: '', description: '', assigneeId: '', goalId: '', priority: 'MEDIUM', status: 'TODO', dueDate: '' });
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -67,6 +70,8 @@ export default function CreateTaskModal({ isOpen, onClose }) {
         background: '#0f172a',
         color: '#fff',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -141,25 +146,25 @@ export default function CreateTaskModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center">
-                <Target className="w-3 h-3 mr-1" /> Link to Goal
-              </label>
-              <select
-                value={formData.goalId}
-                onChange={(e) => setFormData({ ...formData, goalId: e.target.value })}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
-              >
-                <option value="" className="bg-[#080808]">None</option>
-                {goals.map(goal => (
-                  <option key={goal.id} value={goal.id} className="bg-[#080808]">
-                    {goal.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center">
+              <Target className="w-3 h-3 mr-1" /> Link to Goal
+            </label>
+            <select
+              value={formData.goalId}
+              onChange={(e) => setFormData({ ...formData, goalId: e.target.value })}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
+            >
+              <option value="" className="bg-[#080808]">None</option>
+              {goals.map(goal => (
+                <option key={goal.id} value={goal.id} className="bg-[#080808]">
+                  {goal.title}
+                </option>
+              ))}
+            </select>
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center">
                 <Flag className="w-3 h-3 mr-1" /> Priority
@@ -175,6 +180,21 @@ export default function CreateTaskModal({ isOpen, onClose }) {
                 <option value="URGENT" className="bg-[#080808]">Urgent</option>
               </select>
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                 Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
+              >
+                <option value="TODO" className="bg-[#080808]">To Do</option>
+                <option value="IN_PROGRESS" className="bg-[#080808]">Active</option>
+                <option value="DONE" className="bg-[#080808]">Completed</option>
+              </select>
+            </div>
           </div>
 
           <div className="pt-4 flex items-center justify-end space-x-3 border-t border-white/10">
@@ -187,9 +207,15 @@ export default function CreateTaskModal({ isOpen, onClose }) {
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+              disabled={isSubmitting}
+              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
-              Create Task
+              {isSubmitting ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : 'Create Task'}
             </button>
           </div>
         </form>

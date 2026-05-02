@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import DashboardLayout from '../../../components/DashboardLayout';
 import { BarChart3, Download, TrendingUp, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { 
   BarChart, 
@@ -12,7 +11,8 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
-import useWorkspaceStore from '../../../store/useWorkspaceStore';
+import useWorkspaceStore from '@/store/useWorkspaceStore';
+import { cn } from '@/lib/utils';
 
 const data = [
   { name: 'Week 1', completed: 4 },
@@ -32,7 +32,7 @@ export default function AnalyticsPage() {
   const { currentWorkspace } = useWorkspaceStore();
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
@@ -113,11 +113,8 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 
-// Utility to handle class names since I used it above
-function cn(...inputs) {
-  return inputs.filter(Boolean).join(' ');
-}
+

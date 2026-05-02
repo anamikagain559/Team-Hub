@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
   user: null,
   accessToken: Cookies.get('accessToken') || null,
   isLoading: false,
@@ -106,6 +106,32 @@ const useAuthStore = create((set) => ({
       }));
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+    }
+  },
+
+  markAllNotificationsAsRead: async () => {
+    const token = Cookies.get('accessToken');
+    const { notifications } = get();
+    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+    
+    if (unreadIds.length === 0) return;
+
+    try {
+      // Optimistically update
+      set((state) => ({
+        notifications: state.notifications.map((n) => ({ ...n, isRead: true }))
+      }));
+
+      await axios.patch(`${API_URL}/notifications/read-all`, {}, {
+        headers: { Authorization: token }
+      });
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+      // Re-fetch to sync if failed
+      const response = await axios.get(`${API_URL}/notifications`, {
+        headers: { Authorization: token }
+      });
+      set({ notifications: response.data.data });
     }
   },
   

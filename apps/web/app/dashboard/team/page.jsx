@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
 import { Users, UserPlus, Shield, Mail, Loader2, MoreVertical, Trash2, UserCog, Eye } from 'lucide-react';
 import useWorkspaceStore from '@/store/useWorkspaceStore';
 import useAuthStore from '@/store/useAuthStore';
 import InviteMemberModal from '@/components/InviteMemberModal';
+import ChangeRoleModal from '@/components/ChangeRoleModal';
 import { cn } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 import Swal from 'sweetalert2';
@@ -18,6 +18,8 @@ export default function TeamPage() {
   const [members, setMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [memberToUpdate, setMemberToUpdate] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [viewMode, setViewMode] = useState('workspace'); // 'workspace' or 'global'
   const searchParams = useSearchParams();
@@ -62,59 +64,52 @@ export default function TeamPage() {
 
   if (!mounted) return null;
 
-  const handleUpdateRole = async (member) => {
-    const { value: role } = await Swal.fire({
-      title: 'Change Member Role',
-      input: 'select',
-      inputOptions: {
-        ADMIN: 'Admin',
-        MEMBER: 'Member'
-      },
-      inputValue: member.role,
-      showCancelButton: true,
-      background: '#0f172a',
-      color: '#fff',
-      confirmButtonColor: '#2563eb',
-    });
+  const handleUpdateRole = (member) => {
+    setMemberToUpdate(member);
+    setIsRoleModalOpen(true);
+  };
 
-    if (role && role !== member.role) {
-      try {
-        await updateMemberRole(member.id, role);
-        Swal.fire({
-          icon: 'success',
-          title: 'Role Updated',
-          background: '#0f172a',
-          color: '#fff',
-        });
-        loadMembers();
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Update Failed',
-          text: error.message,
-          background: '#0f172a',
-          color: '#fff',
-        });
-      }
+  const onConfirmRoleUpdate = async (memberId, role) => {
+    try {
+      await updateMemberRole(currentWorkspace.id, memberId, role);
+      Swal.fire({
+        icon: 'success',
+        title: 'Role Updated',
+        background: '#0f172a',
+        color: '#fff',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+      loadMembers();
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: error.message,
+        background: '#0f172a',
+        color: '#fff',
+      });
     }
   };
 
   const handleRemoveMember = async (member) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: `Remove ${member.user.name} from this workspace?`,
+      title: 'Remove Member?',
+      text: `Are you sure you want to remove ${member.user.name} from this workspace?`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#334155',
-      confirmButtonText: 'Yes, remove them',
       background: '#0f172a',
       color: '#fff',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#334155',
+      confirmButtonText: 'Yes, remove them'
     });
 
     if (result.isConfirmed) {
       try {
-        await removeMember(member.id);
+        await removeMember(currentWorkspace.id, member.id);
         Swal.fire({
           icon: 'success',
           title: 'Member Removed',
@@ -172,7 +167,7 @@ export default function TeamPage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="animate-in fade-in duration-500">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
             <div>
@@ -310,10 +305,10 @@ export default function TeamPage() {
                               <>
                                 <button 
                                   onClick={() => handleUpdateRole(member)}
-                                  className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                                  className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 rounded-xl transition-all"
                                   title="Edit Role"
                                 >
-                                  <UserCog className="h-4 w-4" />
+                                  Edit Role
                                 </button>
                                 <button 
                                   onClick={() => handleRemoveMember(member)}
@@ -358,7 +353,17 @@ export default function TeamPage() {
               onInviteSuccess={loadMembers}
             />
           )}
+
+          <ChangeRoleModal
+            isOpen={isRoleModalOpen}
+            onClose={() => {
+              setIsRoleModalOpen(false);
+              setMemberToUpdate(null);
+            }}
+            member={memberToUpdate}
+            onUpdate={onConfirmRoleUpdate}
+          />
         </div>
-    </DashboardLayout>
+    </>
   );
 }

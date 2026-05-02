@@ -26,14 +26,39 @@ export default function DashboardLayout({ children }) {
   if (!mounted || !accessToken) return null;
 
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden transition-colors duration-300">
+    <div 
+      className="flex h-screen bg-background text-foreground overflow-hidden transition-all duration-700 ease-in-out"
+      style={{ 
+        '--workspace-color': currentWorkspace?.accentColor || '#3b82f6',
+        '--workspace-color-muted': `${currentWorkspace?.accentColor || '#3b82f6'}20`
+      }}
+    >
+      {/* Background Workspace Glow */}
+      <div 
+        className="fixed -top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full opacity-10 blur-[120px] transition-all duration-1000 pointer-events-none"
+        style={{ backgroundColor: 'var(--workspace-color)' }}
+      />
+      <div 
+        className="fixed -bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full opacity-5 blur-[100px] transition-all duration-1000 pointer-events-none"
+        style={{ backgroundColor: 'var(--workspace-color)' }}
+      />
+
       <CommandPalette />
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between border-b border-border px-8 bg-card/50 backdrop-blur-sm">
-          <h2 className="text-lg font-black tracking-tight uppercase">
-            {currentWorkspace?.name || 'Workspace'}
-          </h2>
+      <div className="flex flex-1 flex-col overflow-hidden relative z-10">
+        <header className="flex h-16 items-center justify-between border-b border-border px-8 bg-card/50 backdrop-blur-md relative z-50">
+          <div className="flex items-center space-x-4">
+            <div 
+              className="h-8 w-8 rounded-xl flex items-center justify-center text-white font-black shadow-lg transition-all duration-500 hover:scale-110"
+              style={{ backgroundColor: 'var(--workspace-color)' }}
+            >
+              {currentWorkspace?.name?.charAt(0)}
+            </div>
+            <h2 className="text-lg font-black tracking-tight uppercase group flex items-center">
+              <span className="text-muted-foreground mr-2 opacity-50">/</span>
+              {currentWorkspace?.name || 'Workspace'}
+            </h2>
+          </div>
           <div className="flex items-center space-x-4">
             <NotificationPopover />
             <div className="h-8 w-8 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 overflow-hidden">

@@ -153,7 +153,18 @@ const addMilestone = async (userId: string, goalId: string, data: any) => {
   });
 
   if (!goal) throw new Error('Goal not found');
-  if (goal.ownerId !== userId) throw new Error('You are not authorized to add milestones to this goal');
+  
+  // Check if user is a member of the workspace
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId,
+        workspaceId: goal.workspaceId,
+      },
+    },
+  });
+
+  if (!member) throw new Error('You are not authorized to add milestones to this goal');
 
   const result = await prisma.milestone.create({
     data: {
@@ -179,7 +190,18 @@ const updateMilestone = async (userId: string, milestoneId: string, data: any) =
   });
 
   if (!milestone) throw new Error('Milestone not found');
-  if (milestone.goal.ownerId !== userId) throw new Error('You are not authorized to update this milestone');
+
+  // Check if user is a member of the workspace
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId,
+        workspaceId: milestone.goal.workspaceId,
+      },
+    },
+  });
+
+  if (!member) throw new Error('You are not authorized to update this milestone');
 
   const result = await prisma.milestone.update({
     where: { id: milestoneId },
@@ -203,7 +225,18 @@ const deleteMilestone = async (userId: string, milestoneId: string) => {
   });
 
   if (!milestone) throw new Error('Milestone not found');
-  if (milestone.goal.ownerId !== userId) throw new Error('You are not authorized to delete this milestone');
+
+  // Check if user is a member of the workspace
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId,
+        workspaceId: milestone.goal.workspaceId,
+      },
+    },
+  });
+
+  if (!member) throw new Error('You are not authorized to delete this milestone');
 
   await prisma.activity.create({
     data: {

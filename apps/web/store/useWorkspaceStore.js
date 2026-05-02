@@ -7,6 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1
 const useWorkspaceStore = create((set, get) => ({
   workspaces: [],
   currentWorkspace: null,
+  currentWorkspaceId: typeof window !== 'undefined' ? localStorage.getItem('currentWorkspaceId') : null,
   goals: [],
   tasks: [],
   announcements: [],
@@ -42,48 +43,19 @@ const useWorkspaceStore = create((set, get) => ({
       });
       return response.data.data;
     } catch (error) {
+      set({ isLoading: false });
       throw error;
     }
   },
 
   addReaction: async (announcementId, emoji) => {
     const { accessToken } = useAuthStore.getState();
-    const { user } = useAuthStore.getState();
-    const previousAnnouncements = get().announcements;
-
-    // Optimistically update reactions
-    set((state) => ({
-      announcements: state.announcements.map((ann) => {
-        if (ann.id === announcementId) {
-          const reactions = ann.reactions || [];
-          const existingReaction = reactions.find(r => r.emoji === emoji && (r.userId === user?.id || r.user?.id === user?.id));
-          
-          if (existingReaction) {
-            // Remove reaction
-            return {
-              ...ann,
-              reactions: reactions.filter(r => r.id !== existingReaction.id)
-            };
-          } else {
-            // Add reaction
-            return {
-              ...ann,
-              reactions: [...reactions, { id: 'temp-id', emoji, userId: user?.id, user: { id: user?.id, name: user?.name } }]
-            };
-          }
-        }
-        return ann;
-      })
-    }));
-
     try {
       await axios.post(`${API_URL}/announcements/${announcementId}/reactions`, { emoji }, {
         headers: { Authorization: accessToken }
       });
-      // Optionally re-fetch to get real IDs, but for simple emoji count it's fine
     } catch (error) {
-      set({ announcements: previousAnnouncements });
-      throw error;
+      console.error('Failed to toggle reaction:', error);
     }
   },
 
@@ -100,37 +72,34 @@ const useWorkspaceStore = create((set, get) => ({
       createdAt: new Date().toISOString()
     };
 
-    // Optimistically add comment
     set((state) => ({
-      announcements: state.announcements.map((ann) => 
-        ann.id === announcementId 
-          ? { ...ann, comments: [...(ann.comments || []), tempComment] } 
-          : ann
-      )
+      announcements: state.announcements.map((ann) => {
+        if (ann.id === announcementId) {
+          return {
+            ...ann,
+            comments: [...(ann.comments || []), tempComment]
+          };
+        }
+        return ann;
+      })
     }));
 
     try {
       const response = await axios.post(`${API_URL}/announcements/${announcementId}/comments`, { content }, {
         headers: { Authorization: accessToken }
       });
-      // Replace temp comment with real one, but check if it was already added by socket
+      
       set((state) => ({
         announcements: state.announcements.map((ann) => {
-          if (ann.id !== announcementId) return ann;
-          
-          const realComment = response.data.data;
-          const alreadyExists = ann.comments?.some(c => c.id === realComment.id);
-          
-          if (alreadyExists) {
-            // Just remove the temp comment
-            return { ...ann, comments: ann.comments.filter(c => c.id !== tempComment.id) };
-          } else {
-            // Replace temp comment
-            return { ...ann, comments: ann.comments.map(c => c.id === tempComment.id ? realComment : c) };
+          if (ann.id === announcementId) {
+            return {
+              ...ann,
+              comments: (ann.comments || []).map(c => c.id === tempComment.id ? response.data.data : c)
+            };
           }
+          return ann;
         })
       }));
-      return response.data.data;
     } catch (error) {
       set({ announcements: previousAnnouncements });
       throw error;
@@ -144,16 +113,39 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.get(`${API_URL}/workspaces`, {
         headers: { Authorization: accessToken }
       });
-      set({ workspaces: response.data.data, isLoading: false });
-      if (response.data.data.length > 0 && !get().currentWorkspace) {
-        set({ currentWorkspace: response.data.data[0] });
+      
+      const workspaces = response.data.data;
+      const savedId = get().currentWorkspaceId;
+      let workspaceToSet = null;
+
+      if (savedId) {
+        workspaceToSet = workspaces.find(w => w.id === savedId);
       }
+
+      if (!workspaceToSet && workspaces.length > 0) {
+        workspaceToSet = workspaces[0];
+      }
+
+      set({ 
+        workspaces, 
+        currentWorkspace: workspaceToSet,
+        currentWorkspaceId: workspaceToSet?.id || null,
+        isLoading: false 
+      });
     } catch (error) {
       set({ isLoading: false });
     }
   },
 
-  setCurrentWorkspace: (workspace) => set({ currentWorkspace: workspace }),
+  setCurrentWorkspace: (workspace) => {
+    if (typeof window !== 'undefined' && workspace) {
+      localStorage.setItem('currentWorkspaceId', workspace.id);
+    }
+    set({ 
+      currentWorkspace: workspace,
+      currentWorkspaceId: workspace?.id || null
+    });
+  },
 
   createWorkspace: async (workspaceData) => {
     const { accessToken } = useAuthStore.getState();
@@ -413,7 +405,7 @@ const useWorkspaceStore = create((set, get) => ({
       });
       const updatedTask = response.data.data;
       set((state) => ({
-        tasks: state.tasks.map((t) => t.id === taskId ? { ...t, ...updatedTask } : t)
+        tasks: (state.tasks || []).map(t => t.id === taskId ? response.data.data : t)
       }));
       return updatedTask;
     } catch (error) {
@@ -525,6 +517,7 @@ const useWorkspaceStore = create((set, get) => ({
         'INVITE_MEMBER', 'MANAGE_MEMBERS', 'UPDATE_WORKSPACE_SETTINGS'
       ],
       MEMBER: [
+        'CREATE_GOAL', // Members can now create goals
         'CREATE_TASK', 'UPDATE_TASK', // Members can manage tasks
         'CREATE_ANNOUNCEMENT', // Members can post announcements
         // Members cannot delete goals or manage workspace
@@ -532,6 +525,80 @@ const useWorkspaceStore = create((set, get) => ({
     };
 
     return permissions[role]?.includes(action) || false;
+  },
+
+  updateWorkspace: async (id, workspaceData) => {
+    const { accessToken } = useAuthStore.getState();
+    set({ isLoading: true });
+    try {
+      const response = await axios.patch(`${API_URL}/workspaces/${id}`, workspaceData, {
+        headers: { Authorization: accessToken }
+      });
+      set((state) => ({ 
+        workspaces: state.workspaces.map(w => w.id === id ? { ...w, ...response.data.data } : w),
+        currentWorkspace: state.currentWorkspace?.id === id ? { ...state.currentWorkspace, ...response.data.data } : state.currentWorkspace,
+        isLoading: false 
+      }));
+      return response.data.data;
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  deleteWorkspace: async (id) => {
+    const { accessToken } = useAuthStore.getState();
+    set({ isLoading: true });
+    try {
+      await axios.delete(`${API_URL}/workspaces/${id}`, {
+        headers: { Authorization: accessToken }
+      });
+      set((state) => {
+        const remainingWorkspaces = state.workspaces.filter(w => w.id !== id);
+        return { 
+          workspaces: remainingWorkspaces,
+          currentWorkspace: state.currentWorkspace?.id === id ? (remainingWorkspaces[0] || null) : state.currentWorkspace,
+          isLoading: false 
+        };
+      });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  inviteMember: async (workspaceId, data) => {
+    const { accessToken } = useAuthStore.getState();
+    try {
+      const response = await axios.post(`${API_URL}/workspaces/${workspaceId}/invite`, data, {
+        headers: { Authorization: accessToken }
+      });
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateMemberRole: async (workspaceId, memberId, role) => {
+    const { accessToken } = useAuthStore.getState();
+    try {
+      await axios.patch(`${API_URL}/workspaces/${workspaceId}/members/${memberId}`, { role }, {
+        headers: { Authorization: accessToken }
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  removeMember: async (workspaceId, memberId) => {
+    const { accessToken } = useAuthStore.getState();
+    try {
+      await axios.delete(`${API_URL}/workspaces/${workspaceId}/members/${memberId}`, {
+        headers: { Authorization: accessToken }
+      });
+    } catch (error) {
+      throw error;
+    }
   },
 }));
 

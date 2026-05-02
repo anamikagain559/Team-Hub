@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import useAuthStore from '@/store/useAuthStore';
 import { Camera, Mail, User, Shield, Check, Loader2 } from 'lucide-react';
-import DashboardLayout from '@/components/DashboardLayout';
 import Swal from 'sweetalert2';
 
 export default function ProfilePage() {
@@ -52,7 +51,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="animate-in fade-in duration-500 max-w-5xl mx-auto">
         <div className="mb-10">
           <h1 className="text-4xl font-black text-white tracking-tight">Profile Settings</h1>
@@ -171,6 +170,6 @@ export default function ProfilePage() {
         </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -19,6 +19,8 @@ const workspaceAuth = (...allowedRoles: string[]) => {
         throw new Error('Workspace ID is required for this action');
       }
 
+      console.log(`[Auth] Checking access for User: ${userId} in Workspace: ${workspaceId}`);
+
       const member = await prisma.workspaceMember.findUnique({
         where: {
           userId_workspaceId: {
@@ -29,13 +31,17 @@ const workspaceAuth = (...allowedRoles: string[]) => {
       });
 
       if (!member) {
+        console.warn(`[Auth] User ${userId} is NOT a member of workspace ${workspaceId}`);
         return res.status(httpStatus.FORBIDDEN).json({
           success: false,
           message: 'You are not a member of this workspace',
         });
       }
 
+      console.log(`[Auth] User Role: ${member.role}, Allowed Roles: ${allowedRoles}`);
+
       if (allowedRoles.length && !allowedRoles.includes(member.role)) {
+        console.warn(`[Auth] Access Denied: User role ${member.role} not in ${allowedRoles}`);
         return res.status(httpStatus.FORBIDDEN).json({
           success: false,
           message: `Forbidden: You need ${allowedRoles.join(' or ')} role in this workspace`,

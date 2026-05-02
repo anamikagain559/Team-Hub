@@ -1,12 +1,11 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import DashboardLayout from '../../../components/DashboardLayout';
 import { Target, Plus, Clock, CheckCircle2, TrendingUp, Trash2, Pencil } from 'lucide-react';
-import useWorkspaceStore from '../../../store/useWorkspaceStore';
-import { cn } from '../../../lib/utils';
-import CreateGoalModal from '../../../components/CreateGoalModal';
-import GoalDetailsModal from '../../../components/GoalDetailsModal';
-import EditGoalModal from '../../../components/EditGoalModal';
+import useWorkspaceStore from '@/store/useWorkspaceStore';
+import { cn } from '@/lib/utils';
+import CreateGoalModal from '@/components/CreateGoalModal';
+import GoalDetailsModal from '@/components/GoalDetailsModal';
+import EditGoalModal from '@/components/EditGoalModal';
 import Swal from 'sweetalert2';
 import { useTheme } from 'next-themes';
 
@@ -17,17 +16,77 @@ export default function GoalsPage() {
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingGoal, setEditingGoal] = useState(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (currentWorkspace) {
+    if (currentWorkspace?.id) {
       fetchGoals(currentWorkspace.id);
     }
-  }, [currentWorkspace]);
+  }, [currentWorkspace?.id]);
 
   if (!mounted) return null;
+
+  const handleStatusChange = async (goalId, newStatus) => {
+    try {
+      await updateGoalStatus(goalId, newStatus);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: error.message,
+        background: resolvedTheme === 'dark' ? '#0f172a' : '#fff',
+        color: resolvedTheme === 'dark' ? '#fff' : '#0f172a',
+      });
+    }
+  };
+
+  const handleGoalClick = (goal) => {
+    setSelectedGoal(goal);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleEditClick = (e, goal) => {
+    e.stopPropagation();
+    setSelectedGoal(goal);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = async (e, goal) => {
+    e.stopPropagation();
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete "${goal.title}". This cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#334155',
+      confirmButtonText: 'Yes, delete it!',
+      background: resolvedTheme === 'dark' ? '#0f172a' : '#fff',
+      color: resolvedTheme === 'dark' ? '#fff' : '#0f172a',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteGoal(goal.id);
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Goal has been removed.',
+          background: resolvedTheme === 'dark' ? '#0f172a' : '#fff',
+          color: resolvedTheme === 'dark' ? '#fff' : '#0f172a',
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'Failed to delete goal.',
+          background: resolvedTheme === 'dark' ? '#0f172a' : '#fff',
+          color: resolvedTheme === 'dark' ? '#fff' : '#0f172a'
+        });
+      }
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -40,64 +99,12 @@ export default function GoalsPage() {
 
   const calculateProgress = (goal) => {
     if (!goal.milestones || goal.milestones.length === 0) return 0;
-    const total = goal.milestones.reduce((acc, m) => acc + m.progress, 0);
-    return Math.round(total / goal.milestones.length);
-  };
-
-  const handleGoalClick = (goal) => {
-    setSelectedGoal(goal);
-    setIsDetailsModalOpen(true);
-  };
-
-  const handleEditGoal = (e, goal) => {
-    e.stopPropagation();
-    setEditingGoal(goal);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDeleteGoal = async (e, goalId) => {
-    e.stopPropagation();
-    
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this! All milestones and activity will be lost.",
-      icon: 'warning',
-      showCancelButton: true,
-      background: resolvedTheme === 'dark' ? '#0f172a' : '#fff',
-      color: resolvedTheme === 'dark' ? '#fff' : '#0f172a',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#334155',
-      confirmButtonText: 'Yes, delete it!'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await deleteGoal(goalId);
-        Swal.fire({
-          title: 'Deleted!',
-          text: 'Your goal has been deleted.',
-          icon: 'success',
-          background: resolvedTheme === 'dark' ? '#0f172a' : '#fff',
-          color: resolvedTheme === 'dark' ? '#fff' : '#0f172a',
-          confirmButtonColor: '#3b82f6',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } catch (error) {
-        console.error('Failed to delete goal:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.response?.data?.message || 'Failed to delete goal.',
-          background: resolvedTheme === 'dark' ? '#0f172a' : '#fff',
-          color: resolvedTheme === 'dark' ? '#fff' : '#0f172a'
-        });
-      }
-    }
+    const totalProgress = goal.milestones.reduce((acc, m) => acc + (m.progress || 0), 0);
+    return Math.round(totalProgress / goal.milestones.length);
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">Goals</h1>
@@ -143,7 +150,7 @@ export default function GoalsPage() {
                     <div className="flex items-center space-x-4 mt-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       <span className="flex items-center">
                         <Clock className="mr-1.5 h-3.5 w-3.5 text-primary/60" />
-                        Due {new Date(goal.dueDate).toLocaleDateString()}
+                        Due {new Date(goal.targetDate).toLocaleDateString()}
                       </span>
                       <span className={cn(
                         "px-2.5 py-0.5 rounded-lg border shadow-sm",
@@ -188,7 +195,7 @@ export default function GoalsPage() {
                   <div className="flex items-center space-x-2">
                     {can('UPDATE_GOAL') && (
                       <button 
-                        onClick={(e) => handleEditGoal(e, goal)}
+                        onClick={(e) => handleEditClick(e, goal)}
                         className="rounded-xl p-2.5 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all md:opacity-0 group-hover:opacity-100"
                       >
                         <Pencil className="h-5 w-5" />
@@ -209,7 +216,7 @@ export default function GoalsPage() {
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        updateGoalStatus(goal.id, goal.status === 'COMPLETED' ? 'IN_PROGRESS' : 'COMPLETED');
+                        handleStatusChange(goal.id, goal.status === 'COMPLETED' ? 'IN_PROGRESS' : 'COMPLETED');
                       }}
                       className={cn(
                         "rounded-xl p-2.5 transition-all shadow-sm",
@@ -221,7 +228,7 @@ export default function GoalsPage() {
 
                     {can('DELETE_GOAL') && (
                       <button 
-                        onClick={(e) => handleDeleteGoal(e, goal.id)}
+                        onClick={(e) => handleDeleteClick(e, goal)}
                         className="rounded-xl p-2.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all md:opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="h-5 w-5" />
@@ -238,10 +245,11 @@ export default function GoalsPage() {
       <CreateGoalModal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
+        workspaceId={currentWorkspace?.id}
       />
 
       <EditGoalModal
-        goal={editingGoal}
+        goal={selectedGoal}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
       />
@@ -253,6 +261,6 @@ export default function GoalsPage() {
           onClose={() => setIsDetailsModalOpen(false)}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

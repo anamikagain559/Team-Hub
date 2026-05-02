@@ -65,6 +65,22 @@ const updateTaskStatus = async (taskId: string, status: string) => {
   return result;
 };
 
+const updateTask = async (taskId: string, data: any) => {
+  const result = await prisma.actionItem.update({
+    where: { id: taskId },
+    data,
+    include: {
+      assignee: { select: { name: true, avatar: true } },
+      goal: { select: { title: true } },
+    },
+  });
+
+  // Emit Socket Event
+  SocketHelper.emitToWorkspace(result.workspaceId, 'task_updated', result);
+
+  return result;
+};
+
 const deleteTask = async (taskId: string) => {
   const result = await prisma.actionItem.delete({
     where: { id: taskId },
@@ -76,5 +92,6 @@ export const TaskService = {
   createTask,
   getWorkspaceTasks,
   updateTaskStatus,
+  updateTask,
   deleteTask,
 };

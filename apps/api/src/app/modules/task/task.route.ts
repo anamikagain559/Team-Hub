@@ -16,6 +16,12 @@ router.post(
 router.get('/:workspaceId', auth(), TaskController.getWorkspaceTasks);
 
 router.patch(
+  '/:taskId',
+  auth(),
+  TaskController.updateTask
+);
+
+router.patch(
   '/:taskId/status',
   auth(),
   validateRequest(TaskValidation.updateStatus),

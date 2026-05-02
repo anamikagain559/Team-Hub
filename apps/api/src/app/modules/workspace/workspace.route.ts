@@ -28,16 +28,30 @@ router.post(
 );
 
 router.patch(
-  '/members/:memberId',
+  '/:workspaceId',
   auth(),
-  workspaceAuth('ADMIN'), // Assumes workspaceId is passed in body/query
+  workspaceAuth('ADMIN'),
+  WorkspaceController.updateWorkspace
+);
+
+router.delete(
+  '/:workspaceId',
+  auth(),
+  workspaceAuth('ADMIN'),
+  WorkspaceController.deleteWorkspace
+);
+
+router.patch(
+  '/:workspaceId/members/:memberId',
+  auth(),
+  workspaceAuth('ADMIN'),
   WorkspaceController.updateMemberRole
 );
 
 router.delete(
-  '/members/:memberId',
+  '/:workspaceId/members/:memberId',
   auth(),
-  workspaceAuth('ADMIN'), // Assumes workspaceId is passed in body/query
+  workspaceAuth('ADMIN'),
   WorkspaceController.removeMember
 );
 

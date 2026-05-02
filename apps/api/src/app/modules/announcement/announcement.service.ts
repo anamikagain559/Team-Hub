@@ -69,6 +69,33 @@ const getWorkspaceAnnouncements = async (workspaceId: string) => {
 };
 
 const addReaction = async (userId: string, announcementId: string, emoji: string) => {
+  // Check if reaction already exists
+  const existingReaction = await prisma.reaction.findFirst({
+    where: {
+      userId,
+      announcementId,
+      emoji,
+    },
+    include: {
+      announcement: { select: { workspaceId: true } }
+    }
+  });
+
+  if (existingReaction) {
+    // Toggle: Remove reaction
+    await prisma.reaction.delete({
+      where: { id: existingReaction.id },
+    });
+
+    SocketHelper.emitToWorkspace(existingReaction.announcement.workspaceId, 'remove_reaction', {
+      announcementId,
+      reactionId: existingReaction.id
+    });
+
+    return { id: existingReaction.id, removed: true };
+  }
+
+  // Create new reaction
   const result = await prisma.reaction.create({
     data: {
       userId,

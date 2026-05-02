@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 import { cn } from '../lib/utils';
+import Swal from 'sweetalert2';
 
 export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
   const { 
@@ -55,11 +56,21 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
     }
   };
 
-  const handleUpdateMilestoneProgress = async (milestoneId, currentProgress) => {
-    const nextProgress = currentProgress === 100 ? 0 : currentProgress + 25;
+  const handleUpdateMilestoneProgress = async (milestoneId, newProgress) => {
     try {
-      await updateMilestone(goal.id, milestoneId, { progress: nextProgress });
+      await updateMilestone(goal.id, milestoneId, { progress: parseInt(newProgress) });
       loadActivity();
+
+      // Check if this was the last piece to hit 100% total progress
+      const otherMilestones = goal.milestones.filter(m => m.id !== milestoneId);
+      const totalProgress = Math.round(
+        (otherMilestones.reduce((acc, m) => acc + m.progress, 0) + parseInt(newProgress)) / 
+        goal.milestones.length
+      );
+
+      if (totalProgress === 100 && goal.status !== 'COMPLETED') {
+        handleStatusToggle(); // This will close modal and show Swal
+      }
     } catch (error) {
       console.error('Failed to update milestone:', error);
     }
@@ -71,6 +82,35 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
       loadActivity();
     } catch (error) {
       console.error('Failed to delete milestone:', error);
+    }
+  };
+
+  const handleStatusToggle = async () => {
+    const isCompleting = goal.status !== 'COMPLETED';
+    const newStatus = isCompleting ? 'COMPLETED' : 'IN_PROGRESS';
+    
+    try {
+      await updateGoalStatus(goal.id, newStatus);
+      
+      if (isCompleting) {
+        onClose();
+        Swal.fire({
+          icon: 'success',
+          title: 'Mission Accomplished!',
+          text: `Goal "${goal.title}" has been marked as complete.`,
+          background: '#0f172a',
+          color: '#fff',
+          confirmButtonColor: '#3b82f6',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          customClass: {
+            popup: 'rounded-[2rem] border border-white/10 shadow-2xl'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update goal status:', error);
     }
   };
 
@@ -141,41 +181,44 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
                 {goal.milestones?.map((milestone) => (
                   <div 
                     key={milestone.id}
-                    className="group flex items-center justify-between rounded-2xl border border-white/5 bg-white/5 p-4 transition-all hover:bg-white/10"
+                    className="group flex flex-col space-y-3 rounded-2xl border border-white/5 bg-white/5 p-5 transition-all hover:bg-white/10"
                   >
-                    <div className="flex items-center space-x-4 flex-1">
-                      <button 
-                        onClick={() => handleUpdateMilestoneProgress(milestone.id, milestone.progress)}
-                        className={cn(
-                          "flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all",
-                          milestone.progress === 100 
-                            ? "border-green-500 bg-green-500 text-white" 
-                            : "border-slate-600 hover:border-primary"
-                        )}
-                      >
-                        {milestone.progress === 100 && <CheckCircle2 className="h-4 w-4" />}
-                      </button>
-                      <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={cn(
+                          "h-2 w-2 rounded-full",
+                          milestone.progress === 100 ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-primary"
+                        )} />
                         <span className={cn(
-                          "text-sm font-medium transition-all",
-                          milestone.progress === 100 ? "text-slate-500 line-through" : "text-white"
+                          "text-sm font-bold transition-all",
+                          milestone.progress === 100 ? "text-slate-500" : "text-white"
                         )}>
                           {milestone.title}
                         </span>
-                        <div className="flex items-center space-x-3 mt-1">
-                          <div className="h-1 w-24 rounded-full bg-white/10 overflow-hidden">
-                            <div className="h-full bg-primary" style={{ width: `${milestone.progress}%` }} />
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">{milestone.progress}%</span>
-                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] font-black text-slate-500 bg-white/5 px-2 py-0.5 rounded-md">
+                          {milestone.progress}%
+                        </span>
+                        <button 
+                          onClick={() => handleDeleteMilestone(milestone.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => handleDeleteMilestone(milestone.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-red-400 transition-all"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+
+                    <div className="relative group/slider">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={milestone.progress}
+                        onChange={(e) => handleUpdateMilestoneProgress(milestone.id, e.target.value)}
+                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary hover:accent-primary/80 transition-all"
+                      />
+                    </div>
                   </div>
                 ))}
 
@@ -249,7 +292,7 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
             <span className="text-xs font-medium text-slate-400">Assigned to {goal.owner?.name}</span>
           </div>
           <button 
-            onClick={() => updateGoalStatus(goal.id, goal.status === 'COMPLETED' ? 'IN_PROGRESS' : 'COMPLETED')}
+            onClick={handleStatusToggle}
             className={cn(
               "flex items-center px-4 py-2 rounded-xl text-sm font-semibold transition-all",
               goal.status === 'COMPLETED' 

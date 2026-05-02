@@ -145,4 +145,89 @@ export const WorkspaceService = {
       where: { id: memberId },
     });
   },
+  updateWorkspace: async (id: string, userId: string, data: any) => {
+    const workspace = await prisma.workspace.update({
+      where: { id },
+      data,
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const member = await prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId: id,
+        },
+      },
+    });
+
+    return {
+      ...workspace,
+      currentUserRole: member?.role,
+    };
+  },
+  deleteWorkspace: async (id: string) => {
+    console.log(`[Service] START: Manual step-by-step purge for Workspace ID: ${id}`);
+    
+    // Step 1: Purge Goal children
+    try {
+      console.log("[Service] Step 1: Purging Activities and Milestones...");
+      await prisma.activity.deleteMany({ where: { goal: { workspaceId: id } } });
+      await prisma.milestone.deleteMany({ where: { goal: { workspaceId: id } } });
+    } catch (e) { console.warn("[Service] Step 1 Failed (skipping):", e); }
+
+    // Step 2: Purge Announcement children
+    try {
+      console.log("[Service] Step 2: Purging Comments and Reactions...");
+      await prisma.comment.deleteMany({ where: { announcement: { workspaceId: id } } });
+      await prisma.reaction.deleteMany({ where: { announcement: { workspaceId: id } } });
+    } catch (e) { console.warn("[Service] Step 2 Failed (skipping):", e); }
+
+    // Step 3: Purge ActionItems
+    try {
+      console.log("[Service] Step 3: Purging ActionItems...");
+      await prisma.actionItem.deleteMany({ where: { workspaceId: id } });
+    } catch (e) { console.warn("[Service] Step 3 Failed (skipping):", e); }
+
+    // Step 4: Purge Announcements
+    try {
+      console.log("[Service] Step 4: Purging Announcements...");
+      await prisma.announcement.deleteMany({ where: { workspaceId: id } });
+    } catch (e) { console.warn("[Service] Step 4 Failed (skipping):", e); }
+
+    // Step 5: Purge Goals
+    try {
+      console.log("[Service] Step 5: Purging Goals...");
+      await prisma.goal.deleteMany({ where: { workspaceId: id } });
+    } catch (e) { console.warn("[Service] Step 5 Failed (skipping):", e); }
+
+    // Step 6: Purge Workspace Members
+    try {
+      console.log("[Service] Step 6: Purging Workspace Members...");
+      await prisma.workspaceMember.deleteMany({ where: { workspaceId: id } });
+    } catch (e) { console.warn("[Service] Step 6 Failed (skipping):", e); }
+
+    // Step 7: Final delete
+    try {
+      console.log("[Service] Step 7: Finalizing Workspace deletion...");
+      const result = await prisma.workspace.delete({ where: { id } });
+      console.log("[Service] SUCCESS: Workspace purged.");
+      return result;
+    } catch (error: any) {
+      console.error("[Service] CRITICAL: Final workspace deletion failed!", error);
+      throw error;
+    }
+  },
 };

@@ -43,9 +43,22 @@ export const SocketProvider = ({ children }) => {
         useWorkspaceStore.setState((state) => ({
           announcements: state.announcements.map((ann) => {
             if (ann.id !== announcementId) return ann;
-            const reactionExists = ann.reactions?.some((r) => r.id === reaction.id);
+            const reactions = ann.reactions || [];
+            const reactionExists = reactions.some((r) => r.id === reaction.id);
             if (reactionExists) return ann;
-            return { ...ann, reactions: [...(ann.reactions || []), reaction] };
+            return { ...ann, reactions: [...reactions, reaction] };
+          })
+        }));
+      });
+
+      socketInstance.on('remove_reaction', ({ announcementId, reactionId }) => {
+        useWorkspaceStore.setState((state) => ({
+          announcements: state.announcements.map((ann) => {
+            if (ann.id !== announcementId) return ann;
+            return { 
+              ...ann, 
+              reactions: (ann.reactions || []).filter((r) => r.id !== reactionId) 
+            };
           })
         }));
       });
