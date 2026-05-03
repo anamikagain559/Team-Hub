@@ -19,7 +19,10 @@ const sendEmail = async (to: string, subject: string, html: string) => {
       },
       tls: {
         rejectUnauthorized: false
-      }
+      },
+      connectionTimeout: 20000, // Increase to 20s
+      logger: true,
+      debug: true
     };
   } else {
     config = {
