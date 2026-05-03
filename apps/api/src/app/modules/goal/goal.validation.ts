@@ -30,6 +30,7 @@ const createMilestone = z.object({
   body: z.object({
     title: z.string().min(2),
     progress: z.number().min(0).max(100).optional(),
+    workspaceId: z.string().uuid().optional(),
   }),
 });
 

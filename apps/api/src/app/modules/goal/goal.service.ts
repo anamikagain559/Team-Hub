@@ -166,9 +166,12 @@ const addMilestone = async (userId: string, goalId: string, data: any) => {
 
   if (!member) throw new Error('You are not authorized to add milestones to this goal');
 
+  const milestoneData = { ...data };
+  delete milestoneData.workspaceId;
+
   const result = await prisma.milestone.create({
     data: {
-      ...data,
+      ...milestoneData,
       goalId,
     },
   });

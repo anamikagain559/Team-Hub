@@ -36,7 +36,7 @@ router.patch(
 router.post(
   '/:goalId/milestones',
   auth(),
-  workspaceAuth(WorkspaceRole.ADMIN),
+  workspaceAuth(WorkspaceRole.ADMIN, WorkspaceRole.MEMBER),
   validateRequest(GoalValidation.createMilestone),
   GoalController.addMilestone
 );

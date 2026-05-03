@@ -25,17 +25,36 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
   const [isSubmittingMilestone, setIsSubmittingMilestone] = useState(false);
   const [isFetchingActivity, setIsFetchingActivity] = useState(false);
 
+  const isMounted = React.useRef(true);
+
   useEffect(() => {
+    isMounted.current = true;
     if (isOpen && goalId) {
       loadActivity();
     }
+    return () => {
+      isMounted.current = false;
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [isOpen, goalId]);
 
   const loadActivity = async () => {
+    if (!goalId) return;
     setIsFetchingActivity(true);
-    const data = await fetchGoalActivity(goalId);
-    setActivities(data);
-    setIsFetchingActivity(false);
+    try {
+      const data = await fetchGoalActivity(goalId);
+      if (isMounted.current) {
+        setActivities(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching activity:', error);
+    } finally {
+      if (isMounted.current) {
+        setIsFetchingActivity(false);
+      }
+    }
   };
 
   if (!isOpen || !goal) return null;
@@ -51,6 +70,14 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
       loadActivity();
     } catch (error) {
       console.error('Failed to add milestone:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Deployment Error',
+        text: error.response?.data?.message || 'Failed to establish milestone protocol.',
+        background: '#0f172a',
+        color: '#fff',
+        confirmButtonColor: '#ef4444',
+      });
     } finally {
       setIsSubmittingMilestone(false);
     }
@@ -69,9 +96,12 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
 
     // Debounce the API call
     debounceTimerRef.current = setTimeout(async () => {
+      if (!isMounted.current) return;
       try {
         await updateMilestone(goal.id, milestoneId, { progress: updatedProgress });
-        loadActivity();
+        if (isMounted.current) {
+          loadActivity();
+        }
 
         const milestones = goal?.milestones || [];
         const otherMilestones = milestones.filter(m => m.id !== milestoneId);
