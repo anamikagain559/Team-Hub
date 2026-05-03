@@ -150,18 +150,23 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
   };
 
   const handleStatusToggle = async () => {
+    if (!goal || !isMounted.current) return;
+    
     const isCompleting = goal.status !== 'COMPLETED';
     const newStatus = isCompleting ? 'COMPLETED' : 'IN_PROGRESS';
+    const goalTitle = goal.title;
     
     try {
       await updateGoalStatus(goal.id, newStatus);
       
       if (isCompleting) {
-        onClose();
+        if (isMounted.current) {
+          onClose();
+        }
         Swal.fire({
           icon: 'success',
           title: 'Mission Accomplished!',
-          text: `Goal "${goal.title}" has been marked as complete.`,
+          text: `Goal "${goalTitle}" has been marked as complete.`,
           background: '#0f172a',
           color: '#fff',
           confirmButtonColor: '#3b82f6',
@@ -175,6 +180,14 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
       }
     } catch (error) {
       console.error('Failed to update goal status:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Authorization Error',
+        text: error.response?.data?.message || 'You are not authorized to update this goal protocol.',
+        background: '#0f172a',
+        color: '#fff',
+        confirmButtonColor: '#ef4444',
+      });
     }
   };
 

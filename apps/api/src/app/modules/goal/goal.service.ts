@@ -70,7 +70,18 @@ const updateGoal = async (userId: string, goalId: string, data: any) => {
   });
 
   if (!goal) throw new Error('Goal not found');
-  if (goal.ownerId !== userId) throw new Error('You are not authorized to update this goal');
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId,
+        workspaceId: goal.workspaceId,
+      },
+    },
+  });
+
+  if (goal.ownerId !== userId && member?.role !== 'ADMIN') {
+    throw new Error('You are not authorized to update this goal');
+  }
 
   const updateData = { ...data };
   if (updateData.dueDate && updateData.dueDate !== '') {
@@ -105,7 +116,18 @@ const deleteGoal = async (userId: string, goalId: string) => {
   });
 
   if (!goal) throw new Error('Goal not found');
-  if (goal.ownerId !== userId) throw new Error('You are not authorized to delete this goal');
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId,
+        workspaceId: goal.workspaceId,
+      },
+    },
+  });
+
+  if (goal.ownerId !== userId && member?.role !== 'ADMIN') {
+    throw new Error('You are not authorized to delete this goal');
+  }
 
   await prisma.milestone.deleteMany({ where: { goalId } });
   await prisma.activity.deleteMany({ where: { goalId } });
@@ -123,7 +145,18 @@ const updateGoalStatus = async (userId: string, goalId: string, status: GoalStat
   });
 
   if (!goal) throw new Error('Goal not found');
-  if (goal.ownerId !== userId) throw new Error('You are not authorized to update this goal');
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId,
+        workspaceId: goal.workspaceId,
+      },
+    },
+  });
+
+  if (goal.ownerId !== userId && member?.role !== 'ADMIN') {
+    throw new Error('You are not authorized to update this goal status');
+  }
 
   const result = await prisma.goal.update({
     where: { id: goalId },
