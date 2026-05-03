@@ -6,11 +6,13 @@ import { WorkspaceValidation } from './workspace.validation';
 
 import workspaceAuth from '../../middlewares/workspaceAuth';
 
+import { UserRole } from '@prisma/client';
+
 const router = express.Router();
 
 router.post(
   '/',
-  auth(),
+  auth(UserRole.ADMIN),
   validateRequest(WorkspaceValidation.create),
   WorkspaceController.createWorkspace
 );

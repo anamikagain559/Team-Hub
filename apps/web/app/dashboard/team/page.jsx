@@ -178,26 +178,28 @@ export default function TeamPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex p-1 bg-muted/50 border border-border rounded-2xl">
-                <button 
-                  onClick={() => setViewMode('workspace')}
-                  className={cn(
-                    "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                    viewMode === 'workspace' ? "bg-background text-foreground shadow-xl" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Workspace
-                </button>
-                <button 
-                  onClick={() => setViewMode('global')}
-                  className={cn(
-                    "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                    viewMode === 'global' ? "bg-background text-foreground shadow-xl" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Global DB
-                </button>
-              </div>
+              {currentUser?.role === 'ADMIN' && (
+                <div className="flex p-1 bg-muted/50 border border-border rounded-2xl">
+                  <button 
+                    onClick={() => setViewMode('workspace')}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                      viewMode === 'workspace' ? "bg-background text-foreground shadow-xl" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Workspace
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('global')}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                      viewMode === 'global' ? "bg-background text-foreground shadow-xl" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    All Members
+                  </button>
+                </div>
+              )}
 
               {viewMode === 'workspace' && can('INVITE_MEMBER') && (
                 <button 

@@ -158,13 +158,15 @@ export default function WorkspacesPage() {
           </div>
           
           <div className="flex items-center space-x-6">
-             <button 
-                onClick={() => setIsModalOpen(true)}
-                className="group flex items-center space-x-3 px-5 py-2.5 rounded-xl bg-primary text-white font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
-              >
-                <Plus className="h-4 w-4 stroke-[4px]" />
-                <span>New Hub</span>
-              </button>
+             {user?.role === 'ADMIN' && (
+               <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="group flex items-center space-x-3 px-5 py-2.5 rounded-xl bg-primary text-white font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
+                >
+                  <Plus className="h-4 w-4 stroke-[4px]" />
+                  <span>New Hub</span>
+                </button>
+             )}
 
              <button 
                 onClick={handleLogout}
@@ -276,13 +278,15 @@ export default function WorkspacesPage() {
                         </span>
                       </div>
 
-                      <button 
-                        onClick={(e) => handleInviteClick(e, ws)}
-                        className="h-9 w-9 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-primary hover:border-primary transition-all"
-                        title="Invite Members"
-                      >
-                        <UserPlus className="h-4 w-4" />
-                      </button>
+                      {ws.currentUserRole === 'ADMIN' && (
+                        <button 
+                          onClick={(e) => handleInviteClick(e, ws)}
+                          className="h-9 w-9 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-primary hover:border-primary transition-all"
+                          title="Invite Members"
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
 
                     {/* Hover Indicator */}
@@ -292,30 +296,32 @@ export default function WorkspacesPage() {
               ))}
 
               {/* Advanced Create Card */}
-              <div 
-                onClick={() => setIsModalOpen(true)}
-                className="group relative flex flex-col transition-all duration-500 hover:-translate-y-2"
-              >
-                <div className="h-full flex flex-col items-center justify-center rounded-[2.5rem] border-2 border-dashed border-white/10 p-12 text-center transition-all hover:border-primary/50 hover:bg-primary/[0.02] cursor-pointer relative overflow-hidden">
-                   {/* Animated Background Lines */}
-                   <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_70%)]" />
-                   </div>
+              {user?.role === 'ADMIN' && (
+                <div 
+                  onClick={() => setIsModalOpen(true)}
+                  className="group relative flex flex-col transition-all duration-500 hover:-translate-y-2"
+                >
+                  <div className="h-full flex flex-col items-center justify-center rounded-[2.5rem] border-2 border-dashed border-white/10 p-12 text-center transition-all hover:border-primary/50 hover:bg-primary/[0.02] cursor-pointer relative overflow-hidden">
+                     {/* Animated Background Lines */}
+                     <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_70%)]" />
+                     </div>
 
-                   <div className="relative z-10 flex flex-col items-center">
-                      <div className="h-20 w-20 rounded-3xl bg-white/10 flex items-center justify-center mb-8 border border-white/20 group-hover:scale-110 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-500 shadow-2xl">
-                        <Plus className="h-10 w-10 text-white" />
-                      </div>
-                      <h3 className="text-2xl font-black text-white tracking-tight">Establish New Hub</h3>
-                      <p className="mt-3 text-sm text-white/30 font-medium max-w-[180px]">Deploy a fresh collaborative workspace for your team.</p>
-                      
-                      <div className="mt-8 flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 group-hover:text-primary transition-colors">
-                        <span>Begin Deployment</span>
-                        <ArrowRight className="h-3 w-3 translate-x-0 group-hover:translate-x-2 transition-transform" />
-                      </div>
-                   </div>
+                     <div className="relative z-10 flex flex-col items-center">
+                        <div className="h-20 w-20 rounded-3xl bg-white/10 flex items-center justify-center mb-8 border border-white/20 group-hover:scale-110 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-500 shadow-2xl">
+                          <Plus className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-black text-white tracking-tight">Establish New Hub</h3>
+                        <p className="mt-3 text-sm text-white/30 font-medium max-w-[180px]">Deploy a fresh collaborative workspace for your team.</p>
+                        
+                        <div className="mt-8 flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 group-hover:text-primary transition-colors">
+                          <span>Begin Deployment</span>
+                          <ArrowRight className="h-3 w-3 translate-x-0 group-hover:translate-x-2 transition-transform" />
+                        </div>
+                     </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </div>

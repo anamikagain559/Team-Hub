@@ -27,12 +27,12 @@ import { useTheme } from 'next-themes';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Workspaces', href: '/workspaces', icon: Grid },
   { name: 'Goals', href: '/dashboard/goals', icon: Target },
   { name: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
   { name: 'Action Items', href: '/dashboard/tasks', icon: CheckSquare },
   { name: 'Team', href: '/dashboard/team', icon: Users },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Back to Hubs', href: '/workspaces', icon: Grid },
 ];
 
 export default function Sidebar() {
@@ -99,7 +99,7 @@ export default function Sidebar() {
         <div>
           <h3 className="px-3 mb-4 text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em]">General</h3>
           <nav className="space-y-1">
-            {items.slice(0, 3).map((item) => (
+            {items.filter(i => ['Dashboard', 'Goals', 'Announcements'].includes(i.name)).map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -131,7 +131,7 @@ export default function Sidebar() {
         <div>
           <h3 className="px-3 mb-4 text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em]">Insights</h3>
           <nav className="space-y-1">
-            {items.slice(3).map((item) => (
+            {items.filter(i => ['Action Items', 'Team', 'Settings'].includes(i.name)).map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -154,6 +154,30 @@ export default function Sidebar() {
                 )} 
                 style={{ color: pathname === item.href ? 'var(--workspace-color)' : undefined }}
                 />
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div>
+          <h3 className="px-3 mb-4 text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em]">System</h3>
+          <nav className="space-y-1">
+            {items.filter(i => i.name === 'Back to Hubs').map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "group flex items-center rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 relative",
+                  pathname === item.href 
+                    ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10" 
+                    : "text-slate-500 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-slate-300"
+                )}
+              >
+                <item.icon className={cn(
+                  "mr-3 h-4 w-4 stroke-[2.5px]",
+                  "text-primary"
+                )} />
                 {item.name}
               </Link>
             ))}

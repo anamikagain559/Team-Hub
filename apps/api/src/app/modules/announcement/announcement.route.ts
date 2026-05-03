@@ -4,11 +4,15 @@ import validateRequest from '../../middlewares/validateRequest';
 import { AnnouncementController } from './announcement.controller';
 import { AnnouncementValidation } from './announcement.validation';
 
+import workspaceAuth from '../../middlewares/workspaceAuth';
+import { WorkspaceRole } from '@prisma/client';
+
 const router = express.Router();
 
 router.post(
   '/',
   auth(),
+  workspaceAuth(WorkspaceRole.ADMIN),
   validateRequest(AnnouncementValidation.create),
   AnnouncementController.createAnnouncement
 );
