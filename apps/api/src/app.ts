@@ -10,19 +10,7 @@ import { swaggerDocument } from './app/docs/swagger';
 const app: Application = express();
 
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://web-production-12fe.up.railway.app'
-      // Adding potential Vercel link too
-    ];
-    if (!origin || allowedOrigins.includes(origin) || origin.includes('railway.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,
   credentials: true
 }));
 
