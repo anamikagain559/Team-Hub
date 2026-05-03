@@ -245,7 +245,12 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
                         </div>
                       </div>
 
-                      <div className="relative pt-1">
+                      <div className="relative pt-2 pb-1">
+                        <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full h-1.5 rounded-full bg-white/5" />
+                        <div 
+                          className={cn("absolute top-1/2 -translate-y-1/2 left-0 h-1.5 rounded-full pointer-events-none bg-gradient-to-r transition-all duration-300", colorClass)}
+                          style={{ width: `${milestone.progress}%` }}
+                        />
                         <input
                           type="range"
                           min="0"
@@ -254,13 +259,9 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
                           value={milestone.progress}
                           onChange={(e) => handleUpdateMilestoneProgress(milestone.id, e.target.value)}
                           className={cn(
-                            "w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-white/10 transition-all",
-                            "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-primary"
+                            "relative z-10 w-full h-1.5 appearance-none cursor-pointer bg-transparent transition-all",
+                            "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-xl [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:cursor-grab active:[&::-webkit-slider-thumb]:cursor-grabbing"
                           )}
-                        />
-                        <div 
-                          className={cn("absolute top-1 left-0 h-1.5 rounded-full pointer-events-none bg-gradient-to-r transition-all duration-300", colorClass)}
-                          style={{ width: `${milestone.progress}%` }}
                         />
                       </div>
                     </div>
