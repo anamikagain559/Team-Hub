@@ -231,8 +231,12 @@ const useWorkspaceStore = create((set, get) => ({
 
   updateGoal: async (goalId, goalData) => {
     const { accessToken } = useAuthStore.getState();
+    const { currentWorkspace } = get();
     try {
-      const response = await axios.patch(`${API_URL}/goals/${goalId}`, goalData, {
+      const response = await axios.patch(`${API_URL}/goals/${goalId}`, {
+        ...goalData,
+        workspaceId: currentWorkspace?.id
+      }, {
         headers: { Authorization: accessToken }
       });
       const updatedGoal = response.data.data;
@@ -247,6 +251,7 @@ const useWorkspaceStore = create((set, get) => ({
 
   deleteGoal: async (goalId) => {
     const { accessToken } = useAuthStore.getState();
+    const { currentWorkspace } = get();
     const previousGoals = get().goals;
 
     // Optimistic delete
@@ -256,7 +261,8 @@ const useWorkspaceStore = create((set, get) => ({
 
     try {
       await axios.delete(`${API_URL}/goals/${goalId}`, {
-        headers: { Authorization: accessToken }
+        headers: { Authorization: accessToken },
+        params: { workspaceId: currentWorkspace?.id }
       });
     } catch (error) {
       set({ goals: previousGoals });
@@ -266,8 +272,12 @@ const useWorkspaceStore = create((set, get) => ({
 
   addMilestone: async (goalId, milestoneData) => {
     const { accessToken } = useAuthStore.getState();
+    const { currentWorkspace } = get();
     try {
-      const response = await axios.post(`${API_URL}/goals/${goalId}/milestones`, milestoneData, {
+      const response = await axios.post(`${API_URL}/goals/${goalId}/milestones`, {
+        ...milestoneData,
+        workspaceId: currentWorkspace?.id
+      }, {
         headers: { Authorization: accessToken }
       });
       const newMilestone = response.data.data;
