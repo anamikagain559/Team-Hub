@@ -33,7 +33,8 @@ export default function RegisterPage() {
       await axios.post(`${API_URL}/auth/register`, data);
       router.push('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration Error Details:', err);
+      setError(err.response?.data?.message || err.message || 'Registration failed');
     } finally {
       setIsLoading(false);
     }
