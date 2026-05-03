@@ -10,7 +10,10 @@ import { swaggerDocument } from './app/docs/swagger';
 const app: Application = express();
 
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    // Reflect the origin back to allow it
+    callback(null, true);
+  },
   credentials: true
 }));
 
