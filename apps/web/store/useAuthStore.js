@@ -12,12 +12,16 @@ const useAuthStore = create((set, get) => ({
   error: null,
   notifications: [],
 
+  /**
+   * authenticates user and saves token in cookies
+   */
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const { accessToken } = response.data.data;
       
+      // Store token in cookie for persistence
       Cookies.set('accessToken', accessToken, { expires: 1 }); // 1 day
       set({ accessToken, isLoading: false });
       
@@ -31,6 +35,9 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Logs out user and clears local state/cookies
+   */
   logout: async () => {
     try {
       await axios.post(`${API_URL}/auth/logout`);
@@ -44,6 +51,9 @@ const useAuthStore = create((set, get) => ({
     set({ accessToken: token });
   },
 
+  /**
+   * Fetches current authenticated user data
+   */
   fetchMe: async () => {
     const token = Cookies.get('accessToken');
     if (!token) return;
@@ -59,6 +69,10 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Updates user profile (name and avatar)
+   * Uses FormData for multipart/form-data upload
+   */
   updateProfile: async (data, file) => {
     const token = Cookies.get('accessToken');
     set({ isLoading: true, error: null });
@@ -76,6 +90,7 @@ const useAuthStore = create((set, get) => ({
         }
       });
       
+      // Update local user state with new data
       set({ user: response.data.data, isLoading: false });
       return response.data;
     } catch (error) {
@@ -84,6 +99,9 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Fetches user notifications
+   */
   fetchNotifications: async () => {
     const token = Cookies.get('accessToken');
     if (!token) return;
@@ -97,12 +115,16 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Marks a specific notification as read
+   */
   markNotificationAsRead: async (id) => {
     const token = Cookies.get('accessToken');
     try {
       await axios.patch(`${API_URL}/notifications/${id}/read`, {}, {
         headers: { Authorization: token }
       });
+      // Optimistic update of local state
       set((state) => ({
         notifications: state.notifications.map((n) => n.id === id ? { ...n, isRead: true } : n)
       }));
@@ -111,6 +133,9 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Marks all notifications as read for current user
+   */
   markAllNotificationsAsRead: async () => {
     const token = Cookies.get('accessToken');
     const { notifications } = get();
@@ -119,7 +144,7 @@ const useAuthStore = create((set, get) => ({
     if (unreadIds.length === 0) return;
 
     try {
-      // Optimistically update
+      // Optimistically update UI
       set((state) => ({
         notifications: state.notifications.map((n) => ({ ...n, isRead: true }))
       }));
@@ -137,6 +162,9 @@ const useAuthStore = create((set, get) => ({
     }
   },
   
+  /**
+   * Adds a notification to the list (typically called via Sockets)
+   */
   addNotification: (notification) => {
     set((state) => ({
       notifications: [notification, ...state.notifications].slice(0, 50)

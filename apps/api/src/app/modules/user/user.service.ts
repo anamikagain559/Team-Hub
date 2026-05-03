@@ -3,6 +3,9 @@ import prisma from '../../shared/prisma';
 import { FileUploadHelper } from '../../helper/fileUploadHelper';
 import { IUploadFile } from '../../types/file';
 
+/**
+ * Fetches current user profile from database
+ */
 const getMe = async (userId: string): Promise<Partial<User> | null> => {
   const result = await prisma.user.findUnique({
     where: { id: userId },
@@ -19,11 +22,16 @@ const getMe = async (userId: string): Promise<Partial<User> | null> => {
   return result;
 };
 
+/**
+ * Updates user profile including name and avatar
+ * Handles Cloudinary upload if a file is provided
+ */
 const updateProfile = async (
   userId: string,
   payload: Partial<User>,
   file?: IUploadFile
 ): Promise<Partial<User>> => {
+  // If file exists, upload to Cloudinary and update payload
   if (file) {
     const uploadResponse = await FileUploadHelper.uploadToCloudinary(file);
     if (uploadResponse) {
@@ -31,6 +39,7 @@ const updateProfile = async (
     }
   }
 
+  // Update user in database
   const result = await prisma.user.update({
     where: { id: userId },
     data: payload,
@@ -46,6 +55,9 @@ const updateProfile = async (
   return result;
 };
 
+/**
+ * Retrieves all users (typically for Admin use)
+ */
 const getAllUsers = async (): Promise<Partial<User>[]> => {
   const result = await prisma.user.findMany({
     select: {

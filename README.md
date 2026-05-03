@@ -1,6 +1,6 @@
 # 🚀 TeamHub - Collaborative Team Hub
 
-A premium, full-stack collaborative platform designed for high-performance teams to manage goals, announcements, and action items in real-time. Built with a modern aesthetic and robust architecture.
+A premium, full-stack collaborative platform designed for high-performance teams to manage goals, announcements, and action items in real-time. Built with a modern aesthetic, robust monorepo architecture, and optimized for performance.
 
 ---
 
@@ -14,37 +14,46 @@ A premium, full-stack collaborative platform designed for high-performance teams
 
 ---
 
-## 🚀 Chosen Advanced Features (Assignment Requirements)
+## 🏗️ Architecture Overview
 
-As per the assignment requirements, the following two advanced features have been implemented:
+TeamHub is architected as a **Turborepo Monorepo** for seamless development between the frontend and backend.
 
-1. **Optimistic UI (Feature #2)**: Actions reflect instantly in the UI before server confirmation. This is prominently implemented in **Goal Status updates** and **Announcement Reactions**, ensuring a lag-free experience. If a server error occurs, the UI gracefully rolls back to the previous state.
-2. **Advanced RBAC (Feature #4)**: A granular permission matrix is implemented to control sensitive actions. **System Admins** and **Workspace Admins** have exclusive rights to invite members, manage hub settings, and moderate announcements, while **Members** have restricted access.
+- **Frontend (Next.js 14)**: Uses the **App Router** for layout-based navigation and **Zustand** for lightweight, high-performance state management. Styling is powered by **Tailwind CSS** with a custom design system.
+- **Backend (Express & TypeScript)**: Follows a modular controller-service-route pattern. **Prisma ORM** manages the PostgreSQL database with type safety.
+- **Real-time Layer**: **Socket.io** enables instant updates across clients for mentions, notifications, and goal progress.
+- **Infrastructure**: Hosted on **Railway** with CI/CD integration. Images are managed via **Cloudinary**.
 
 ---
 
-## ✨ Bonus Features (Extra Credit)
+## 🚀 Advanced Features (Technical Depth)
 
-- **🎨 Dark/Light Theme**: Sophisticated dark-mode aesthetic with system preference detection. Built using a custom `ThemeProvider` for a premium look and feel.
-- **✉️ Email Notifications**: Automated invitations and system updates via **Nodemailer**. Users receive professional email invites when added to a workspace.
-- **⌨️ Keyboard Shortcuts (Cmd+K)**: Interactive **Command Palette** for lightning-fast navigation. Use `Ctrl + K` (Windows) or `Cmd + K` (Mac) to search and jump across the platform.
-- **🧪 Testing Infrastructure**: Unit and integration tests set up using **Jest** and **Supertest** to ensure system stability and performance.
-- **📖 OpenAPI / Swagger**: Comprehensive API documentation served at `/api/docs` for easy integration and developer reference.
-- **💬 Real-time @Mentions**: Advanced rich-text mentions in announcements and comments to keep team members aligned.
+### 1. Optimistic UI & State Synchronization
+We use **Zustand** to implement optimistic updates. When a user changes a goal status or adds a reaction, the UI updates instantly. A background sync process communicates with the API, and if a failure occurs, the state is rolled back gracefully using saved snapshots.
+
+### 2. Granular RBAC (Role-Based Access Control)
+The system differentiates between **Global Roles** (Admin/Member) and **Workspace Roles**. Permissions are enforced at both the middleware level (API) and component level (Frontend).
+- **Admins**: Can manage all workspaces, users, and system settings.
+- **Workspace Admins**: Can invite/remove members and modify workspace details.
+- **Members**: Can create goals and announcements within their assigned workspaces.
+
+### 3. Command Palette (Omnibar)
+Built with specialized keyboard listeners, the Command Palette (`Cmd+K` or `Ctrl+K`) allows users to navigate the entire application without leaving the keyboard, searching through workspaces, goals, and team members.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Monorepo**: Turborepo (Efficient build system)
-- **Frontend**: Next.js 14 (App Router, Zustand, Tailwind CSS, Lucide Icons)
-- **Backend**: Node.js, Express (TypeScript), Prisma ORM
-- **Database**: PostgreSQL (Hosted on Railway)
-- **Real-time**: Socket.io for live updates and presence
-- **Auth**: JWT with Secure HTTP-Only Cookies
-- **Documentation**: Swagger UI Express
+- **Monorepo**: Turborepo
+- **Frontend**: Next.js 14, Zustand, Tailwind CSS, Framer Motion
+- **Backend**: Node.js, Express, TypeScript, Prisma ORM
+- **Database**: PostgreSQL
+- **Real-time**: Socket.io
+- **Auth**: JWT with HTTP-Only Cookies
+- **File Storage**: Cloudinary
+- **Documentation**: Swagger / OpenAPI
 
 ---
+
 
 ## 🚀 Quick Setup & Seeding
 
@@ -54,36 +63,30 @@ npm install
 ```
 
 ### 2. Database Setup & Seeding
-To populate the database with a full demo environment (Users, Workspaces, Goals, etc.), run:
 ```bash
 cd apps/api
 npx prisma db push
 npx prisma db seed
 ```
 
-### 3. Default Demo Credentials
-- **Admin Email**: `admin@teamhub.com`
-- **Member Email**: `member@teamhub.com`
-- **Password**: `admin123` (for Admin) | `member123` (for Member)
+### 3. Running Development Server
+```bash
+# From root
+npm run dev
+```
+
+### 4. Default Demo Credentials
+- **Admin Email**: `admin@teamhub.com` (Password: `admin123`)
+- **Member Email**: `member@teamhub.com` (Password: `member123`)
 
 ---
 
-## 📂 Project Structure
-- `apps/web`: Next.js frontend application
-- `apps/api`: Express TypeScript backend
-- `packages/ui`: Shared UI components
-- `packages/typescript-config`: Shared TS configurations
-
----
-
-## 👨‍💻 Key Features Implemented
-- **Workspaces**: Dynamic creation, editing, and members management.
-- **Goals & Milestones**: Detailed progress tracking with a modern UI.
-- **Announcements**: Pinned posts, reactions, and real-time comments.
-- **Action Items**: A sleek board view for managing personal and team tasks.
-- **Optimistic UI**: Instant updates for a seamless user experience.
-- **RBAC**: Robust Role-Based Access Control (Admin/Member).
-
----
+## 👨‍💻 Key Features List
+- ✅ **Dynamic Workspaces**: Create and manage multiple team environments.
+- ✅ **Goal Tracking**: Interactive milestones and progress visualization.
+- ✅ **Real-time Mentions**: @mention team members in announcements.
+- ✅ **Smart Notifications**: Instant alerts for mentions and assignments.
+- ✅ **Action Items Board**: Modern task management interface.
+- ✅ **Dark Mode**: Premium aesthetic with persistence.
 
 Developed with ❤️ for high-performance teams.

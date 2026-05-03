@@ -4,19 +4,27 @@ import { Secret } from 'jsonwebtoken';
 import config from '../../config';
 import { jwtHelpers } from '../helper/jwtHelpers';
 
+/**
+ * Authentication middleware to verify JWT tokens and enforce role-based access control (RBAC).
+ * @param roles - Optional list of roles allowed to access the route.
+ */
 const auth = (...roles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // Get token from header
       const token = req.headers.authorization;
       if (!token) {
         throw new Error('You are not authorized');
       }
 
+      // Verify token
       let verifiedUser = null;
       verifiedUser = jwtHelpers.verifyToken(token, config.jwt.access_secret as Secret);
 
-      req.user = verifiedUser; // userId, role
+      // Attach verified user to request object
+      req.user = verifiedUser; // contains userId and role
 
+      // Check if user has required role
       if (roles.length && !roles.includes(verifiedUser.role)) {
         throw new Error('Forbidden');
       }

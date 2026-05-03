@@ -15,6 +15,9 @@ const useWorkspaceStore = create((set, get) => ({
   isLoading: false,
   isFetchingAnnouncements: false,
 
+  /**
+   * Fetches all announcements for a specific workspace
+   */
   fetchAnnouncements: async (workspaceId) => {
     const { accessToken } = useAuthStore.getState();
     set({ isFetchingAnnouncements: true });
@@ -111,6 +114,10 @@ const useWorkspaceStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Fetches all workspaces where the current user is a member
+   * Handles workspace persistence via localStorage
+   */
   fetchWorkspaces: async () => {
     const { accessToken } = useAuthStore.getState();
     set({ isLoading: true });
@@ -184,6 +191,10 @@ const useWorkspaceStore = create((set, get) => ({
   },
 
   // Optimistic UI for updating goal status
+  /**
+   * Updates goal status with Optimistic UI
+   * Rolls back state if the server request fails
+   */
   updateGoalStatus: async (goalId, status) => {
     const { accessToken } = useAuthStore.getState();
     const previousGoals = get().goals;
@@ -535,7 +546,10 @@ const useWorkspaceStore = create((set, get) => ({
     }
   },
 
-  // RBAC Helper
+  /**
+   * RBAC Helper function to check if the current user has permission for an action
+   * @param action - The action string to check (e.g., 'CREATE_GOAL')
+   */
   can: (action) => {
     const { currentWorkspace } = get();
     if (!currentWorkspace) return false;
