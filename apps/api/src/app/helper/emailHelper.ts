@@ -6,21 +6,24 @@ const sendEmail = async (to: string, subject: string, html: string) => {
   const isGmail = process.env.EMAIL_HOST?.includes('gmail') || process.env.EMAIL_USER?.includes('@gmail.com');
 
   const config: any = {
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: Number(process.env.EMAIL_PORT) || 587,
     secure: Number(process.env.EMAIL_PORT) === 465,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    tls: {
+      rejectUnauthorized: false // Helps in some restricted networks
+    },
+    connectionTimeout: 10000, // 10 seconds timeout
   };
 
-  // If using Gmail, use the built-in service config for better reliability
-  if (isGmail) {
+  if (isGmail && !process.env.EMAIL_PORT) {
+    config.service = 'gmail';
     delete config.host;
     delete config.port;
     delete config.secure;
-    config.service = 'gmail';
   }
 
   const transporter = nodemailer.createTransport(config);
@@ -41,7 +44,7 @@ const handleMentions = async (content: string, workspaceId: string, authorName: 
     if (!mentions) return;
 
     const mentionNames = Array.from(new Set(mentions.map(m => m.slice(1).toLowerCase())));
-    
+
     const members = await prisma.workspaceMember.findMany({
       where: { workspaceId },
       include: { user: { select: { id: true, name: true, email: true } } }
@@ -51,7 +54,7 @@ const handleMentions = async (content: string, workspaceId: string, authorName: 
 
     for (const member of members) {
       const normalizedMemberName = member.user.name.toLowerCase().replace(/\s+/g, '');
-      
+
       if (mentionNames.includes(normalizedMemberName) && !notifiedUserIds.has(member.user.id)) {
         notifiedUserIds.add(member.user.id);
 
