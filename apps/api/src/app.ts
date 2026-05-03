@@ -9,13 +9,18 @@ import { swaggerDocument } from './app/docs/swagger';
 
 const app: Application = express();
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Reflect the origin back to allow it
-    callback(null, true);
-  },
-  credentials: true
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(cookieParser());
 
