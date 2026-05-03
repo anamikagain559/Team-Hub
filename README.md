@@ -14,6 +14,15 @@ A premium, full-stack collaborative platform designed for high-performance teams
 
 ---
 
+## 🚀 Chosen Advanced Features (Assignment Requirements)
+
+As per the assignment requirements, the following two advanced features have been implemented:
+
+1. **Optimistic UI (Feature #2)**: Actions reflect instantly in the UI before server confirmation. This is prominently implemented in **Goal Status updates** and **Announcement Reactions**, ensuring a lag-free experience. If a server error occurs, the UI gracefully rolls back to the previous state.
+2. **Advanced RBAC (Feature #4)**: A granular permission matrix is implemented to control sensitive actions. **System Admins** and **Workspace Admins** have exclusive rights to invite members, manage hub settings, and moderate announcements, while **Members** have restricted access.
+
+---
+
 ## ✨ Bonus Features (Extra Credit)
 
 - **🎨 Dark/Light Theme**: Sophisticated dark-mode aesthetic with system preference detection. Built using a custom `ThemeProvider` for a premium look and feel.
