@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
-import { getApiUrl } from '../../lib/urlHelper';
+import { getApiUrl } from '../../../lib/urlHelper';
 const API_URL = getApiUrl();
 
 const registerSchema = z.object({
