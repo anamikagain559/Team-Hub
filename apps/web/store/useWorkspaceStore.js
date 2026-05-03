@@ -88,7 +88,7 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.post(`${API_URL}/announcements/${announcementId}/comments`, { content }, {
         headers: { Authorization: accessToken }
       });
-      
+
       set((state) => ({
         announcements: state.announcements.map((ann) => {
           if (ann.id === announcementId) {
@@ -113,7 +113,7 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.get(`${API_URL}/workspaces`, {
         headers: { Authorization: accessToken }
       });
-      
+
       const workspaces = response.data.data;
       const savedId = get().currentWorkspaceId;
       let workspaceToSet = null;
@@ -126,11 +126,11 @@ const useWorkspaceStore = create((set, get) => ({
         workspaceToSet = workspaces[0];
       }
 
-      set({ 
-        workspaces, 
+      set({
+        workspaces,
         currentWorkspace: workspaceToSet,
         currentWorkspaceId: workspaceToSet?.id || null,
-        isLoading: false 
+        isLoading: false
       });
     } catch (error) {
       set({ isLoading: false });
@@ -141,7 +141,7 @@ const useWorkspaceStore = create((set, get) => ({
     if (typeof window !== 'undefined' && workspace) {
       localStorage.setItem('currentWorkspaceId', workspace.id);
     }
-    set({ 
+    set({
       currentWorkspace: workspace,
       currentWorkspaceId: workspace?.id || null
     });
@@ -154,9 +154,9 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.post(`${API_URL}/workspaces`, workspaceData, {
         headers: { Authorization: accessToken }
       });
-      set((state) => ({ 
+      set((state) => ({
         workspaces: [...state.workspaces, response.data.data],
-        isLoading: false 
+        isLoading: false
       }));
       return response.data.data;
     } catch (error) {
@@ -212,9 +212,9 @@ const useWorkspaceStore = create((set, get) => ({
       set((state) => {
         const exists = state.goals.some((g) => g.id === newGoal.id);
         if (exists) return { isLoading: false };
-        return { 
+        return {
           goals: [newGoal, ...state.goals],
-          isLoading: false 
+          isLoading: false
         };
       });
       return newGoal;
@@ -266,16 +266,16 @@ const useWorkspaceStore = create((set, get) => ({
         headers: { Authorization: accessToken }
       });
       const newMilestone = response.data.data;
-      
+
       // Update local state
       set((state) => ({
-        goals: state.goals.map((g) => 
-          g.id === goalId 
-            ? { ...g, milestones: [...(g.milestones || []), newMilestone] } 
+        goals: state.goals.map((g) =>
+          g.id === goalId
+            ? { ...g, milestones: [...(g.milestones || []), newMilestone] }
             : g
         )
       }));
-      
+
       return newMilestone;
     } catch (error) {
       throw error;
@@ -289,18 +289,18 @@ const useWorkspaceStore = create((set, get) => ({
         headers: { Authorization: accessToken }
       });
       const updatedMilestone = response.data.data;
-      
+
       set((state) => ({
-        goals: state.goals.map((g) => 
-          g.id === goalId 
-            ? { 
-                ...g, 
-                milestones: g.milestones.map((m) => m.id === milestoneId ? updatedMilestone : m) 
-              } 
+        goals: state.goals.map((g) =>
+          g.id === goalId
+            ? {
+              ...g,
+              milestones: g.milestones.map((m) => m.id === milestoneId ? updatedMilestone : m)
+            }
             : g
         )
       }));
-      
+
       return updatedMilestone;
     } catch (error) {
       throw error;
@@ -312,9 +312,9 @@ const useWorkspaceStore = create((set, get) => ({
     const previousGoals = get().goals;
 
     set((state) => ({
-      goals: state.goals.map((g) => 
-        g.id === goalId 
-          ? { ...g, milestones: g.milestones.filter((m) => m.id !== milestoneId) } 
+      goals: state.goals.map((g) =>
+        g.id === goalId
+          ? { ...g, milestones: g.milestones.filter((m) => m.id !== milestoneId) }
           : g
       )
     }));
@@ -365,9 +365,9 @@ const useWorkspaceStore = create((set, get) => ({
       set((state) => {
         const exists = state.tasks.some((t) => t.id === newTask.id);
         if (exists) return { isLoading: false };
-        return { 
+        return {
           tasks: [newTask, ...state.tasks],
-          isLoading: false 
+          isLoading: false
         };
       });
       return newTask;
@@ -506,9 +506,9 @@ const useWorkspaceStore = create((set, get) => ({
   can: (action) => {
     const { currentWorkspace } = get();
     if (!currentWorkspace) return false;
-    
+
     const role = currentWorkspace.currentUserRole;
-    
+
     const permissions = {
       ADMIN: [
         'CREATE_GOAL', 'UPDATE_GOAL', 'DELETE_GOAL',
@@ -531,10 +531,10 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.patch(`${API_URL}/workspaces/${id}`, workspaceData, {
         headers: { Authorization: accessToken }
       });
-      set((state) => ({ 
+      set((state) => ({
         workspaces: state.workspaces.map(w => w.id === id ? { ...w, ...response.data.data } : w),
         currentWorkspace: state.currentWorkspace?.id === id ? { ...state.currentWorkspace, ...response.data.data } : state.currentWorkspace,
-        isLoading: false 
+        isLoading: false
       }));
       return response.data.data;
     } catch (error) {
@@ -552,10 +552,10 @@ const useWorkspaceStore = create((set, get) => ({
       });
       set((state) => {
         const remainingWorkspaces = state.workspaces.filter(w => w.id !== id);
-        return { 
+        return {
           workspaces: remainingWorkspaces,
           currentWorkspace: state.currentWorkspace?.id === id ? (remainingWorkspaces[0] || null) : state.currentWorkspace,
-          isLoading: false 
+          isLoading: false
         };
       });
     } catch (error) {
