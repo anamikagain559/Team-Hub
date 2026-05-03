@@ -3,6 +3,8 @@ import prisma from '../shared/prisma';
 import { NotificationService } from '../modules/notification/notification.service';
 
 const sendEmail = async (to: string, subject: string, html: string) => {
+  console.log(`[EmailService] Email notification is currently disabled. Would have sent to: ${to}`);
+  return; // Temporarily disabled
   const isGmail = process.env.EMAIL_USER?.includes('@gmail.com') || process.env.EMAIL_HOST?.includes('gmail');
 
   let config: any;
