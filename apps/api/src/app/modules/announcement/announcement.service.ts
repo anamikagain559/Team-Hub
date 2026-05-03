@@ -136,6 +136,16 @@ const addComment = async (userId: string, announcementId: string, content: strin
       announcementId,
       comment: result
     });
+
+    // Notify the announcement author (if not the one commenting)
+    if (announcement.authorId !== userId) {
+      const { NotificationService } = require('../modules/notification/notification.service');
+      await NotificationService.createNotification({
+        userId: announcement.authorId,
+        type: 'ANNOUNCEMENT',
+        content: `${user?.name || 'Someone'} commented on your announcement: "${announcement.title}"`,
+      }).catch(e => console.error('[NotificationError]:', e));
+    }
   }
 
   // Handle Mentions in Comment

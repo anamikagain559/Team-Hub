@@ -65,6 +65,9 @@ export const SocketProvider = ({ children }) => {
       });
 
       socketInstance.on('new_comment', ({ announcementId, comment }) => {
+        // Skip if it's our own comment (already handled by store optimistically)
+        if (comment.userId === user?.id) return;
+
         useWorkspaceStore.setState((state) => ({
           announcements: state.announcements.map((ann) => {
             if (ann.id !== announcementId) return ann;
