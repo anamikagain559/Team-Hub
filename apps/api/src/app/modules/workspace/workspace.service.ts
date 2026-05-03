@@ -3,7 +3,7 @@ import prisma from '../../shared/prisma';
 import { EmailHelper } from '../../helper/emailHelper';
 
 const createWorkspace = async (userId: string, data: any): Promise<Workspace> => {
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: any) => {
     const workspace = await tx.workspace.create({
       data,
     });
@@ -46,7 +46,7 @@ const getMyWorkspaces = async (userId: string) => {
       },
     },
   });
-  return result.map((m) => ({
+  return result.map((m: any) => ({
     ...m.workspace,
     currentUserRole: m.role,
   }));
