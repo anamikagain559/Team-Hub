@@ -58,7 +58,7 @@ export const WorkspaceController = {
   updateMemberRole: catchAsync(async (req: Request, res: Response) => {
     const { memberId } = req.params;
     const { role } = req.body;
-    const result = await WorkspaceService.updateMemberRole(memberId, role);
+    const result = await WorkspaceService.updateMemberRole(memberId as string, role);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -68,7 +68,7 @@ export const WorkspaceController = {
   }),
   removeMember: catchAsync(async (req: Request, res: Response) => {
     const { memberId } = req.params;
-    const result = await WorkspaceService.removeMember(memberId);
+    const result = await WorkspaceService.removeMember(memberId as string);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -79,7 +79,7 @@ export const WorkspaceController = {
   updateWorkspace: catchAsync(async (req: Request, res: Response) => {
     const { workspaceId } = req.params;
     const userId = req.user?.userId;
-    const result = await WorkspaceService.updateWorkspace(workspaceId, userId as string, req.body);
+    const result = await WorkspaceService.updateWorkspace(workspaceId as string, userId as string, req.body);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -89,7 +89,7 @@ export const WorkspaceController = {
   }),
   deleteWorkspace: catchAsync(async (req: Request, res: Response) => {
     const { workspaceId } = req.params;
-    const result = await WorkspaceService.deleteWorkspace(workspaceId);
+    const result = await WorkspaceService.deleteWorkspace(workspaceId as string);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

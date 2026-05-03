@@ -6,7 +6,7 @@ import { AnalyticsService } from './analytics.service';
 
 const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
   const { workspaceId } = req.params;
-  const result = await AnalyticsService.getDashboardStats(workspaceId);
+  const result = await AnalyticsService.getDashboardStats(workspaceId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -17,7 +17,7 @@ const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
 
 const getWorkspaceExportData = catchAsync(async (req: Request, res: Response) => {
   const { workspaceId } = req.params;
-  const result = await AnalyticsService.getWorkspaceExportData(workspaceId);
+  const result = await AnalyticsService.getWorkspaceExportData(workspaceId as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
