@@ -3,27 +3,31 @@ import prisma from '../shared/prisma';
 import { NotificationService } from '../modules/notification/notification.service';
 
 const sendEmail = async (to: string, subject: string, html: string) => {
-  const isGmail = process.env.EMAIL_HOST?.includes('gmail') || process.env.EMAIL_USER?.includes('@gmail.com');
+  const isGmail = process.env.EMAIL_USER?.includes('@gmail.com') || process.env.EMAIL_HOST?.includes('gmail');
 
-  const config: any = {
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false // Helps in some restricted networks
-    },
-    connectionTimeout: 10000, // 10 seconds timeout
-  };
+  let config: any;
 
-  if (isGmail && !process.env.EMAIL_PORT) {
-    config.service = 'gmail';
-    delete config.host;
-    delete config.port;
-    delete config.secure;
+  if (isGmail) {
+    config = {
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    };
+  } else {
+    config = {
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: Number(process.env.EMAIL_PORT) || 587,
+      secure: Number(process.env.EMAIL_PORT) === 465,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    };
   }
 
   const transporter = nodemailer.createTransport(config);
