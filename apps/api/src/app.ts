@@ -10,7 +10,7 @@ import { swaggerDocument } from './app/docs/swagger';
 const app: Application = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: ['http://localhost:3000', 'https://web-production-12fe.up.railway.app'],
   credentials: true
 }));
 
@@ -33,7 +33,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use((err: any, req: Request, res: Response, next: any) => {
   try {
     require('fs').appendFileSync('error.log', new Date().toISOString() + ' - ' + JSON.stringify({ name: err.name, message: err.message, stack: err.stack, issues: err.issues }) + '\n');
-  } catch (e) {}
+  } catch (e) { }
 
   let statusCode = err.status || httpStatus.INTERNAL_SERVER_ERROR;
   let message = err.message || 'Something went wrong!';
@@ -47,7 +47,7 @@ app.use((err: any, req: Request, res: Response, next: any) => {
     // Handle Prisma errors
     statusCode = httpStatus.BAD_REQUEST;
     message = 'Database operation failed. Please check your input data.';
-    
+
     // Provide more specific hints for common Prisma errors if needed
     if (err.code === 'P2002') {
       message = 'A record with this information already exists.';

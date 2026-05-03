@@ -17,7 +17,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && currentWorkspace) {
-      const socketInstance = io(process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:5000', {
+      const socketInstance = io(process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'https://api-production-4940.up.railway.app', {
         query: {
           userId: user.id,
           workspaceId: currentWorkspace.id

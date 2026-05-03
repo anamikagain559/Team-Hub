@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-production-4940.up.railway.app/api/v1';
 
 const useAuthStore = create((set, get) => ({
   user: null,

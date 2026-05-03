@@ -8,7 +8,8 @@ import { useRouter } from 'next/navigation';
 import { Loader2, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-production-4940.up.railway.app';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-production-4940.up.railway.app/api/v1';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
