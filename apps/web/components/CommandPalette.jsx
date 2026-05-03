@@ -1,87 +1,163 @@
-"use client";
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Target, Megaphone, CheckSquare, BarChart3, Settings } from 'lucide-react';
+import { 
+  Search, 
+  LayoutDashboard, 
+  CheckSquare, 
+  Target, 
+  Users, 
+  Megaphone, 
+  Plus, 
+  Settings,
+  Command,
+  ArrowRight
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import useWorkspaceStore from '@/store/useWorkspaceStore';
 
 export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
+  const { currentWorkspace } = useWorkspaceStore();
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsOpen((prev) => !prev);
-      }
-      if (e.key === 'Escape') {
+  const navigationItems = [
+    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', shortcut: 'D' },
+    { id: 'tasks', name: 'Action Items', icon: CheckSquare, path: '/dashboard/tasks', shortcut: 'T' },
+    { id: 'goals', name: 'Strategic Goals', icon: Target, path: '/dashboard/goals', shortcut: 'G' },
+    { id: 'team', name: 'Team Hub', icon: Users, path: '/dashboard/team', shortcut: 'H' },
+    { id: 'announcements', name: 'Announcements', icon: Megaphone, path: '/dashboard/announcements', shortcut: 'A' },
+  ];
+
+  const filteredItems = query === '' 
+    ? navigationItems 
+    : navigationItems.filter(item => 
+        item.name.toLowerCase().includes(query.toLowerCase())
+      );
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      setIsOpen(prev => !prev);
+    }
+
+    if (!isOpen) return;
+
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev + 1) % filteredItems.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev - 1 + filteredItems.length) % filteredItems.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const selected = filteredItems[selectedIndex];
+      if (selected) {
+        router.push(selected.path);
         setIsOpen(false);
       }
-    };
+    }
+  }, [isOpen, filteredItems, selectedIndex, router]);
 
+  useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleKeyDown]);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
 
   if (!isOpen) return null;
 
-  const actions = [
-    { name: 'Go to Goals', icon: Target, href: '/goals' },
-    { name: 'Go to Announcements', icon: Megaphone, href: '/announcements' },
-    { name: 'Go to Action Items', icon: CheckSquare, href: '/tasks' },
-    { name: 'Go to Analytics', icon: BarChart3, href: '/analytics' },
-    { name: 'Workspace Settings', icon: Settings, href: '/settings' },
-  ];
-
-  const handleAction = (href) => {
-    router.push(href);
-    setIsOpen(false);
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 sm:px-6">
-      <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
-        onClick={() => setIsOpen(false)}
-      />
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsOpen(false)} />
       
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#171717] shadow-2xl ring-1 ring-white/5 animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center border-b border-white/10 px-4">
-          <Search className="h-5 w-5 text-gray-500" />
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#0c0c0c]/90 backdrop-blur-2xl shadow-[0_50px_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-200">
+        <div className="relative flex items-center p-6 border-b border-white/10">
+          <Search className="h-6 w-6 text-slate-400 mr-4" />
           <input
             autoFocus
-            className="flex-1 bg-transparent px-4 py-4 text-sm text-white outline-none placeholder:text-gray-500"
-            placeholder="Type a command or search..."
+            className="w-full bg-transparent text-xl font-bold text-white placeholder-slate-600 focus:outline-none"
+            placeholder="Type to navigate..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
-          <kbd className="hidden rounded bg-white/10 px-2 py-0.5 text-[10px] font-bold text-gray-500 sm:block">
-            ESC
-          </kbd>
-        </div>
-
-        <div className="max-h-96 overflow-y-auto p-2">
-          {actions.map((action) => (
-            <button
-              key={action.name}
-              onClick={() => handleAction(action.href)}
-              className="flex w-full items-center rounded-xl px-4 py-3 text-left text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-all group"
-            >
-              <action.icon className="mr-4 h-5 w-5 text-gray-500 group-hover:text-primary transition-colors" />
-              <span className="flex-1 font-medium">{action.name}</span>
-              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest group-hover:text-gray-400">Jump</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="border-t border-white/10 bg-white/[0.02] px-4 py-3">
-          <div className="flex items-center text-[10px] text-gray-500 space-x-4">
-            <span className="flex items-center">
-              <kbd className="mr-2 rounded bg-white/5 px-1.5 py-0.5">↑↓</kbd>
-              Navigate
-            </span>
-            <span className="flex items-center">
-              <kbd className="mr-2 rounded bg-white/5 px-1.5 py-0.5">↵</kbd>
-              Select
-            </span>
+          <div className="flex items-center px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 ml-4">
+            <span className="text-[10px] font-black text-slate-500 tracking-widest uppercase">ESC to close</span>
           </div>
+        </div>
+
+        <div className="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+          {filteredItems.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">No results found for "{query}"</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="px-4 py-2 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Quick Navigation</p>
+              {filteredItems.map((item, index) => {
+                const isSelected = index === selectedIndex;
+                const Icon = item.icon;
+                
+                return (
+                  <button
+                    key={item.id}
+                    className={cn(
+                      "w-full flex items-center justify-between p-4 rounded-3xl transition-all duration-200 group relative overflow-hidden",
+                      isSelected 
+                        ? "bg-primary text-white shadow-xl shadow-primary/20 scale-[1.01]" 
+                        : "text-slate-400 hover:bg-white/5"
+                    )}
+                    onClick={() => {
+                      router.push(item.path);
+                      setIsOpen(false);
+                    }}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                  >
+                    <div className="flex items-center">
+                      <div className={cn(
+                        "h-10 w-10 rounded-2xl flex items-center justify-center mr-4 transition-all",
+                        isSelected ? "bg-white/20" : "bg-white/5"
+                      )}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-sm font-black uppercase tracking-widest">{item.name}</span>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      {isSelected ? (
+                        <ArrowRight className="h-4 w-4 animate-in slide-in-from-left-2 duration-300" />
+                      ) : (
+                        <div className="flex items-center space-x-1 opacity-40">
+                          <Command className="h-3 w-3" />
+                          <span className="text-[10px] font-bold">{item.shortcut}</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 bg-white/5 border-t border-white/10 flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center h-6 w-8 rounded-lg bg-white/10 border border-white/10 text-[10px] font-black text-slate-400">↑↓</div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">to navigate</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center h-6 w-12 rounded-lg bg-white/10 border border-white/10 text-[10px] font-black text-slate-400">ENTER</div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">to open</span>
+            </div>
+          </div>
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest">{currentWorkspace?.name}</p>
         </div>
       </div>
     </div>

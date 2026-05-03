@@ -4,6 +4,8 @@ import cookieParser from 'cookie-parser';
 import httpStatus from 'http-status';
 
 import router from './app/routes';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerDocument } from './app/docs/swagger';
 
 const app: Application = express();
 
@@ -18,6 +20,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1', router);
 
 app.get('/', (req: Request, res: Response) => {

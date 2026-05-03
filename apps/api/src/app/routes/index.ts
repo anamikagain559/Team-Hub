@@ -6,6 +6,7 @@ import { AnnouncementRoutes } from '../modules/announcement/announcement.route';
 import { TaskRoutes } from '../modules/task/task.route';
 import { UserRoutes } from '../modules/user/user.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
+import { AnalyticsRoutes } from '../modules/analytics/analytics.route';
 
 const router = express.Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: '/notifications',
     route: NotificationRoutes,
+  },
+  {
+    path: '/analytics',
+    route: AnalyticsRoutes,
   },
 ];
 

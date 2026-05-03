@@ -517,10 +517,7 @@ const useWorkspaceStore = create((set, get) => ({
         'INVITE_MEMBER', 'MANAGE_MEMBERS', 'UPDATE_WORKSPACE_SETTINGS'
       ],
       MEMBER: [
-        'CREATE_GOAL', // Members can now create goals
-        'CREATE_TASK', 'UPDATE_TASK', // Members can manage tasks
-        'CREATE_ANNOUNCEMENT', // Members can post announcements
-        // Members cannot delete goals or manage workspace
+        'CREATE_TASK', 'UPDATE_TASK', // Members can only manage tasks
       ]
     };
 
@@ -597,6 +594,32 @@ const useWorkspaceStore = create((set, get) => ({
         headers: { Authorization: accessToken }
       });
     } catch (error) {
+      throw error;
+    }
+  },
+
+  fetchDashboardStats: async (workspaceId) => {
+    const { accessToken } = useAuthStore.getState();
+    try {
+      const response = await axios.get(`${API_URL}/analytics/stats/${workspaceId}`, {
+        headers: { Authorization: accessToken }
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+      return null;
+    }
+  },
+
+  fetchWorkspaceExportData: async (workspaceId) => {
+    const { accessToken } = useAuthStore.getState();
+    try {
+      const response = await axios.get(`${API_URL}/analytics/export/${workspaceId}`, {
+        headers: { Authorization: accessToken }
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch export data:', error);
       throw error;
     }
   },

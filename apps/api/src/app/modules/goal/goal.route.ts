@@ -4,11 +4,15 @@ import validateRequest from '../../middlewares/validateRequest';
 import { GoalController } from './goal.controller';
 import { GoalValidation } from './goal.validation';
 
+import workspaceAuth from '../../middlewares/workspaceAuth';
+import { WorkspaceRole } from '@prisma/client';
+
 const router = express.Router();
 
 router.post(
   '/',
   auth(),
+  workspaceAuth(WorkspaceRole.ADMIN),
   validateRequest(GoalValidation.create),
   GoalController.createGoal
 );
@@ -18,6 +22,7 @@ router.get('/:workspaceId', auth(), GoalController.getWorkspaceGoals);
 router.patch(
   '/:goalId',
   auth(),
+  workspaceAuth(WorkspaceRole.ADMIN),
   validateRequest(GoalValidation.update),
   GoalController.updateGoal
 );
@@ -25,13 +30,13 @@ router.patch(
 router.patch(
   '/:goalId/status',
   auth(),
-  validateRequest(GoalValidation.updateStatus),
   GoalController.updateGoalStatus
 );
 
 router.post(
   '/:goalId/milestones',
   auth(),
+  workspaceAuth(WorkspaceRole.ADMIN),
   validateRequest(GoalValidation.createMilestone),
   GoalController.addMilestone
 );
@@ -39,6 +44,7 @@ router.post(
 router.delete(
   '/:goalId',
   auth(),
+  workspaceAuth(WorkspaceRole.ADMIN),
   GoalController.deleteGoal
 );
 
