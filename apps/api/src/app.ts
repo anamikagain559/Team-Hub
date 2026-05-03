@@ -14,7 +14,7 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://web-production-12fe.up.railway.app',
+      'https://web-production-12fe.up.railway.app'
       // Adding potential Vercel link too
     ];
     if (!origin || allowedOrigins.includes(origin) || origin.includes('railway.app')) {
