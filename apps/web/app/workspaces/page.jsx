@@ -26,7 +26,7 @@ import EditWorkspaceModal from '@/components/EditWorkspaceModal';
 
 export default function WorkspacesPage() {
   const { workspaces, fetchWorkspaces, setCurrentWorkspace, deleteWorkspace, isLoading } = useWorkspaceStore();
-  const { accessToken, user, logout } = useAuthStore();
+  const { accessToken, user, logout, fetchMe } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -41,6 +41,7 @@ export default function WorkspacesPage() {
       router.push('/login');
       return;
     }
+    fetchMe();
     fetchWorkspaces();
   }, [accessToken]);
 

@@ -21,7 +21,9 @@ const useAuthStore = create((set, get) => ({
       Cookies.set('accessToken', accessToken, { expires: 1 }); // 1 day
       set({ accessToken, isLoading: false });
       
-      // Fetch user profile if needed or decode token
+      // Fetch user profile immediately after login
+      await get().fetchMe();
+      
       return response.data;
     } catch (error) {
       set({ error: error.response?.data?.message || 'Login failed', isLoading: false });
