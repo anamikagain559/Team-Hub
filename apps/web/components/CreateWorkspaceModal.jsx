@@ -45,7 +45,6 @@ export default function CreateWorkspaceModal({ isOpen, onClose }) {
       });
       reset();
       onClose();
-      router.push('/dashboard');
     } catch (err) {
       console.error(err);
     } finally {

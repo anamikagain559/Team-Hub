@@ -299,28 +299,46 @@ const useWorkspaceStore = create((set, get) => ({
 
   updateMilestone: async (goalId, milestoneId, milestoneData) => {
     const { accessToken } = useAuthStore.getState();
-    try {
-      const response = await axios.patch(`${API_URL}/goals/milestones/${milestoneId}`, milestoneData, {
-        headers: { Authorization: accessToken }
-      });
-      const updatedMilestone = response.data.data;
-
+    const previousGoals = get().goals;
+      const milestone = (previousGoals.find(g => g.id === goalId)?.milestones || []).find(m => m.id === milestoneId);
+      
+      // Optimistic update
       set((state) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-              ...g,
-              milestones: g.milestones.map((m) => m.id === milestoneId ? updatedMilestone : m)
-            }
+                ...g,
+                milestones: (g.milestones || []).map((m) => 
+                  m.id === milestoneId ? { ...m, ...milestoneData } : m
+                )
+              }
             : g
         )
       }));
 
-      return updatedMilestone;
-    } catch (error) {
-      throw error;
-    }
-  },
+      try {
+        const response = await axios.patch(`${API_URL}/goals/milestones/${milestoneId}`, milestoneData, {
+          headers: { Authorization: accessToken }
+        });
+        const updatedMilestone = response.data.data;
+
+        set((state) => ({
+          goals: state.goals.map((g) =>
+            g.id === goalId
+              ? {
+                ...g,
+                milestones: (g.milestones || []).map((m) => m.id === milestoneId ? updatedMilestone : m)
+              }
+              : g
+          )
+        }));
+
+        return updatedMilestone;
+      } catch (error) {
+        set({ goals: previousGoals });
+        throw error;
+      }
+    },
 
   deleteMilestone: async (goalId, milestoneId) => {
     const { accessToken } = useAuthStore.getState();
@@ -329,7 +347,7 @@ const useWorkspaceStore = create((set, get) => ({
     set((state) => ({
       goals: state.goals.map((g) =>
         g.id === goalId
-          ? { ...g, milestones: g.milestones.filter((m) => m.id !== milestoneId) }
+          ? { ...g, milestones: (g.milestones || []).filter((m) => m.id !== milestoneId) }
           : g
       )
     }));
@@ -350,7 +368,7 @@ const useWorkspaceStore = create((set, get) => ({
       const response = await axios.get(`${API_URL}/goals/${goalId}/activity`, {
         headers: { Authorization: accessToken }
       });
-      return response.data.data;
+      return response.data.data || [];
     } catch (error) {
       return [];
     }

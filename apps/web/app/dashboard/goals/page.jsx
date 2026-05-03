@@ -150,7 +150,7 @@ export default function GoalsPage() {
                     <div className="flex items-center space-x-4 mt-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       <span className="flex items-center">
                         <Clock className="mr-1.5 h-3.5 w-3.5 text-primary/60" />
-                        Due {new Date(goal.targetDate).toLocaleDateString()}
+                        Due {new Date(goal.dueDate).toLocaleDateString()}
                       </span>
                       <span className={cn(
                         "px-2.5 py-0.5 rounded-lg border shadow-sm",

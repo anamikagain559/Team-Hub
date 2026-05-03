@@ -73,10 +73,11 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
         await updateMilestone(goal.id, milestoneId, { progress: updatedProgress });
         loadActivity();
 
-        const otherMilestones = goal.milestones.filter(m => m.id !== milestoneId);
+        const milestones = goal?.milestones || [];
+        const otherMilestones = milestones.filter(m => m.id !== milestoneId);
         const totalProgress = Math.round(
-          (otherMilestones.reduce((acc, m) => acc + m.progress, 0) + updatedProgress) / 
-          goal.milestones.length
+          (otherMilestones.reduce((acc, m) => acc + (m.progress || 0), 0) + updatedProgress) / 
+          (milestones.length || 1)
         );
 
         if (totalProgress === 100 && goal.status !== 'COMPLETED') {
@@ -98,12 +99,14 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
   ];
 
   const getActivityIcon = (content) => {
-    if (content.includes('created')) return '🌱';
-    if (content.includes('milestone added')) return '✨';
-    if (content.includes('updated to 100%')) return '🎯';
-    if (content.includes('updated')) return '📈';
-    if (content.includes('status updated')) return '🔄';
-    if (content.includes('deleted')) return '🗑️';
+    if (!content) return '🕒';
+    const lowerContent = content.toLowerCase();
+    if (lowerContent.includes('created')) return '🌱';
+    if (lowerContent.includes('milestone added')) return '✨';
+    if (lowerContent.includes('updated to 100%')) return '🎯';
+    if (lowerContent.includes('updated')) return '📈';
+    if (lowerContent.includes('status updated')) return '🔄';
+    if (lowerContent.includes('deleted')) return '🗑️';
     return '🕒';
   };
 
