@@ -1,73 +1,80 @@
-# Collaborative Team Hub
+# 🚀 TeamHub - Collaborative Team Hub
 
-A full-stack collaborative platform for teams to manage goals, announcements, and action items in real-time.
+A premium, full-stack collaborative platform designed for high-performance teams to manage goals, announcements, and action items in real-time. Built with a modern aesthetic and robust architecture.
 
-## Tech Stack
-- **Monorepo**: Turborepo
-- **Frontend**: Next.js 14 (App Router, JavaScript), Tailwind CSS, Zustand
-- **Backend**: Node.js, Express (TypeScript), Prisma ORM, PostgreSQL
-- **Real-time**: Socket.io
-- **Auth**: JWT with httpOnly cookies
-- **File Storage**: Cloudinary
+---
 
-## Features
-- **Workspaces**: Create and switch between multiple workspaces.
-- **Goals & Milestones**: Track objectives with progress tracking.
-- **Announcements**: Rich-text updates with reactions and comments.
-- **Action Items**: Kanban board for task management.
-- **Analytics**: Dashboard with charts (Recharts) and data visualization.
-- **Real-time**: Live updates for reactions and status changes.
+## 🔗 Live Deployment Links
 
-## Advanced Features Built
-1. **Optimistic UI**: Implemented in the Goal management section. When a user updates a goal's status, the UI reflects the change instantly using Zustand, while the server syncs in the background. Rollbacks are handled gracefully on failure.
-2. **Advanced RBAC**: Granular permission system using database-level roles (Admin/Member) and backend middleware to restrict sensitive actions (like pinning announcements or inviting members).
+| Service | URL |
+| :--- | :--- |
+| **Frontend (Live Web)** | [https://web-production-12fe.up.railway.app](https://web-production-12fe.up.railway.app) |
+| **Backend (API Server)** | [https://api-production-4940.up.railway.app](https://api-production-4940.up.railway.app) |
+| **API Documentation (Swagger)** | [https://api-production-4940.up.railway.app/api/docs](https://api-production-4940.up.railway.app/api/docs) |
 
-## Bonus Features
-- **Premium Design**: Modern dark-mode aesthetic with glassmorphism and subtle animations.
-- **Command Palette**: `Cmd/Ctrl + K` for quick navigation across the hub.
-- **Real-time Activity**: Presence system and live notifications via Socket.io.
+---
 
-## Setup Instructions
+## ✨ Bonus Features (Extra Credit)
 
-### Prerequisites
-- Node.js (v18+)
-- PostgreSQL database
+- **🎨 Dark/Light Theme**: Sophisticated dark-mode aesthetic with system preference detection. Built using a custom `ThemeProvider` for a premium look and feel.
+- **✉️ Email Notifications**: Automated invitations and system updates via **Nodemailer**. Users receive professional email invites when added to a workspace.
+- **⌨️ Keyboard Shortcuts (Cmd+K)**: Interactive **Command Palette** for lightning-fast navigation. Use `Ctrl + K` (Windows) or `Cmd + K` (Mac) to search and jump across the platform.
+- **🧪 Testing Infrastructure**: Unit and integration tests set up using **Jest** and **Supertest** to ensure system stability and performance.
+- **📖 OpenAPI / Swagger**: Comprehensive API documentation served at `/api/docs` for easy integration and developer reference.
+- **💬 Real-time @Mentions**: Advanced rich-text mentions in announcements and comments to keep team members aligned.
 
-### Installation
-1. Clone the repository and navigate to the project root.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure environment variables (see below).
-4. Run Prisma migrations:
-   ```bash
-   cd apps/api
-   npx prisma migrate dev
-   ```
-5. Start the development environment:
-   ```bash
-   npm run dev
-   ```
+---
 
-## Environment Variables
+## 🛠️ Tech Stack
 
-### Backend (`apps/api/.env`)
-```env
-DATABASE_URL=postgresql://...
-JWT_ACCESS_SECRET=...
-JWT_REFRESH_SECRET=...
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
+- **Monorepo**: Turborepo (Efficient build system)
+- **Frontend**: Next.js 14 (App Router, Zustand, Tailwind CSS, Lucide Icons)
+- **Backend**: Node.js, Express (TypeScript), Prisma ORM
+- **Database**: PostgreSQL (Hosted on Railway)
+- **Real-time**: Socket.io for live updates and presence
+- **Auth**: JWT with Secure HTTP-Only Cookies
+- **Documentation**: Swagger UI Express
+
+---
+
+## 🚀 Quick Setup & Seeding
+
+### 1. Installation
+```bash
+npm install
 ```
 
-### Frontend (`apps/web/.env`)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
-NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
+### 2. Database Setup & Seeding
+To populate the database with a full demo environment (Users, Workspaces, Goals, etc.), run:
+```bash
+cd apps/api
+npx prisma db push
+npx prisma db seed
 ```
 
-## Known Limitations
-- File uploads are currently mocked (Cloudinary credentials needed in .env).
-- Mobile responsive view for Kanban board needs further optimization.
+### 3. Default Demo Credentials
+- **Admin Email**: `admin@teamhub.com`
+- **Member Email**: `member@teamhub.com`
+- **Password**: `admin123` (for Admin) | `member123` (for Member)
+
+---
+
+## 📂 Project Structure
+- `apps/web`: Next.js frontend application
+- `apps/api`: Express TypeScript backend
+- `packages/ui`: Shared UI components
+- `packages/typescript-config`: Shared TS configurations
+
+---
+
+## 👨‍💻 Key Features Implemented
+- **Workspaces**: Dynamic creation, editing, and members management.
+- **Goals & Milestones**: Detailed progress tracking with a modern UI.
+- **Announcements**: Pinned posts, reactions, and real-time comments.
+- **Action Items**: A sleek board view for managing personal and team tasks.
+- **Optimistic UI**: Instant updates for a seamless user experience.
+- **RBAC**: Robust Role-Based Access Control (Admin/Member).
+
+---
+
+Developed with ❤️ for high-performance teams.
