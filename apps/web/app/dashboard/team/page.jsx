@@ -178,7 +178,7 @@ export default function TeamPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              {currentUser?.role === 'ADMIN' && (
+              {currentUser?.role?.toUpperCase() === 'ADMIN' && (
                 <div className="flex p-1 bg-muted/50 border border-border rounded-2xl">
                   <button 
                     onClick={() => setViewMode('workspace')}

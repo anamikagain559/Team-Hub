@@ -158,7 +158,7 @@ export default function WorkspacesPage() {
           </div>
           
           <div className="flex items-center space-x-6">
-             {user?.role === 'ADMIN' && (
+             {user?.role?.toUpperCase() === 'ADMIN' && (
                <button 
                   onClick={() => setIsModalOpen(true)}
                   className="group flex items-center space-x-3 px-5 py-2.5 rounded-xl bg-primary text-white font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
@@ -221,7 +221,7 @@ export default function WorkspacesPage() {
                         <Grid className="h-8 w-8" style={{ color: ws.accentColor }} />
                       </div>
                       
-                      {ws.currentUserRole === 'ADMIN' && (
+                      {ws.currentUserRole?.toUpperCase() === 'ADMIN' && (
                         <div className="flex items-center space-x-2 relative z-20">
                           <button 
                             onClick={(e) => handleEditClick(e, ws)}
@@ -296,7 +296,7 @@ export default function WorkspacesPage() {
               ))}
 
               {/* Advanced Create Card */}
-              {user?.role === 'ADMIN' && (
+              {user?.role?.toUpperCase() === 'ADMIN' && (
                 <div 
                   onClick={() => setIsModalOpen(true)}
                   className="group relative flex flex-col transition-all duration-500 hover:-translate-y-2"
