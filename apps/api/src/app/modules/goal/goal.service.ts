@@ -208,12 +208,34 @@ const updateMilestone = async (userId: string, milestoneId: string, data: any) =
     data,
   });
 
-  await prisma.activity.create({
-    data: {
+  // Smart Activity Logging: If the last activity was also a progress update 
+  // for THIS milestone within the last 5 minutes, update it instead of creating new
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+  const lastActivity = await prisma.activity.findFirst({
+    where: {
       goalId: result.goalId,
-      content: `Milestone "${result.title}" updated to ${data.progress}%`,
+      content: { contains: `Milestone "${result.title}" updated` },
+      createdAt: { gte: fiveMinutesAgo }
     },
+    orderBy: { createdAt: 'desc' }
   });
+
+  if (lastActivity) {
+    await prisma.activity.update({
+      where: { id: lastActivity.id },
+      data: { 
+        content: `Milestone "${result.title}" updated to ${data.progress}%`,
+        createdAt: new Date() // Refresh the timestamp
+      }
+    });
+  } else {
+    await prisma.activity.create({
+      data: {
+        goalId: result.goalId,
+        content: `Milestone "${result.title}" updated to ${data.progress}%`,
+      },
+    });
+  }
 
   return result;
 };

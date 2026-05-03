@@ -56,24 +56,55 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
     }
   };
 
-  const handleUpdateMilestoneProgress = async (milestoneId, newProgress) => {
-    try {
-      await updateMilestone(goal.id, milestoneId, { progress: parseInt(newProgress) });
-      loadActivity();
+  // Add a ref to store the timeout ID
+  const debounceTimerRef = React.useRef(null);
 
-      // Check if this was the last piece to hit 100% total progress
-      const otherMilestones = goal.milestones.filter(m => m.id !== milestoneId);
-      const totalProgress = Math.round(
-        (otherMilestones.reduce((acc, m) => acc + m.progress, 0) + parseInt(newProgress)) / 
-        goal.milestones.length
-      );
-
-      if (totalProgress === 100 && goal.status !== 'COMPLETED') {
-        handleStatusToggle(); // This will close modal and show Swal
-      }
-    } catch (error) {
-      console.error('Failed to update milestone:', error);
+  const handleUpdateMilestoneProgress = (milestoneId, newProgress) => {
+    const updatedProgress = parseInt(newProgress);
+    
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
     }
+
+    // Debounce the API call
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        await updateMilestone(goal.id, milestoneId, { progress: updatedProgress });
+        loadActivity();
+
+        const otherMilestones = goal.milestones.filter(m => m.id !== milestoneId);
+        const totalProgress = Math.round(
+          (otherMilestones.reduce((acc, m) => acc + m.progress, 0) + updatedProgress) / 
+          goal.milestones.length
+        );
+
+        if (totalProgress === 100 && goal.status !== 'COMPLETED') {
+          handleStatusToggle();
+        }
+      } catch (error) {
+        console.error('Failed to update milestone:', error);
+      }
+    }, 500); // 500ms delay
+  };
+
+  const milestoneColors = [
+    'from-blue-500 to-cyan-500',
+    'from-purple-500 to-pink-500',
+    'from-orange-500 to-yellow-500',
+    'from-emerald-500 to-teal-500',
+    'from-rose-500 to-red-500',
+    'from-indigo-500 to-violet-500',
+  ];
+
+  const getActivityIcon = (content) => {
+    if (content.includes('created')) return '🌱';
+    if (content.includes('milestone added')) return '✨';
+    if (content.includes('updated to 100%')) return '🎯';
+    if (content.includes('updated')) return '📈';
+    if (content.includes('status updated')) return '🔄';
+    if (content.includes('deleted')) return '🗑️';
+    return '🕒';
   };
 
   const handleDeleteMilestone = async (milestoneId) => {
@@ -178,49 +209,63 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
               </div>
 
               <div className="space-y-3">
-                {goal.milestones?.map((milestone) => (
-                  <div 
-                    key={milestone.id}
-                    className="group flex flex-col space-y-3 rounded-2xl border border-white/5 bg-white/5 p-5 transition-all hover:bg-white/10"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className={cn(
-                          "h-2 w-2 rounded-full",
-                          milestone.progress === 100 ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-primary"
-                        )} />
-                        <span className={cn(
-                          "text-sm font-bold transition-all",
-                          milestone.progress === 100 ? "text-slate-500" : "text-white"
-                        )}>
-                          {milestone.title}
-                        </span>
+                {goal.milestones?.map((milestone, index) => {
+                  const colorClass = milestoneColors[index % milestoneColors.length];
+                  return (
+                    <div 
+                      key={milestone.id}
+                      className="group flex flex-col space-y-3 rounded-2xl border border-white/5 bg-white/5 p-5 transition-all hover:bg-white/10"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className={cn(
+                            "h-2.5 w-2.5 rounded-full",
+                            milestone.progress === 100 ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]" : `bg-gradient-to-tr ${colorClass}`
+                          )} />
+                          <span className={cn(
+                            "text-sm font-bold transition-all",
+                            milestone.progress === 100 ? "text-slate-500 line-through decoration-slate-700" : "text-white"
+                          )}>
+                            {milestone.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={cn(
+                            "text-[10px] font-black px-2 py-0.5 rounded-md",
+                            milestone.progress === 100 ? "bg-green-500/10 text-green-500" : "bg-white/5 text-slate-400"
+                          )}>
+                            {milestone.progress}%
+                          </span>
+                          <button 
+                            onClick={() => handleDeleteMilestone(milestone.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-[10px] font-black text-slate-500 bg-white/5 px-2 py-0.5 rounded-md">
-                          {milestone.progress}%
-                        </span>
-                        <button 
-                          onClick={() => handleDeleteMilestone(milestone.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
 
-                    <div className="relative group/slider">
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={milestone.progress}
-                        onChange={(e) => handleUpdateMilestoneProgress(milestone.id, e.target.value)}
-                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary hover:accent-primary/80 transition-all"
-                      />
+                      <div className="relative pt-1">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={milestone.progress}
+                          onChange={(e) => handleUpdateMilestoneProgress(milestone.id, e.target.value)}
+                          className={cn(
+                            "w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-white/10 transition-all",
+                            "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-primary"
+                          )}
+                        />
+                        <div 
+                          className={cn("absolute top-1 left-0 h-1.5 rounded-full pointer-events-none bg-gradient-to-r transition-all duration-300", colorClass)}
+                          style={{ width: `${milestone.progress}%` }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <form onSubmit={handleAddMilestone} className="relative mt-4">
                   <input
@@ -266,14 +311,14 @@ export default function GoalDetailsModal({ goalId, isOpen, onClose }) {
                 </div>
               ) : (
                 activities.map((activity) => (
-                  <div key={activity.id} className="relative pl-8">
-                    <div className="absolute left-0 top-1.5 h-6 w-6 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center">
-                      <Clock className="h-3 w-3 text-slate-400" />
+                  <div key={activity.id} className="relative pl-10 group/activity">
+                    <div className="absolute left-0 top-0 h-7 w-7 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shadow-lg group-hover/activity:border-primary/50 transition-colors">
+                      <span className="text-xs">{getActivityIcon(activity.content)}</span>
                     </div>
-                    <div>
-                      <p className="text-sm text-slate-300">{activity.content}</p>
-                      <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">
-                        {new Date(activity.createdAt).toLocaleString()}
+                    <div className="bg-white/[0.02] rounded-2xl p-3 border border-transparent group-hover/activity:border-white/5 group-hover/activity:bg-white/[0.04] transition-all">
+                      <p className="text-sm text-slate-300 leading-snug">{activity.content}</p>
+                      <p className="text-[9px] font-black text-slate-500 uppercase mt-1.5 tracking-wider">
+                        {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(activity.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
