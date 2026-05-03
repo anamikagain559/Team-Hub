@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 
 // Load env
-dotenv.config({ path: path.join(process.cwd(), '.env') });
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const config = {
   host: process.env.EMAIL_HOST,
