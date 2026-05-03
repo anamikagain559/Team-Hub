@@ -251,14 +251,20 @@ export default function GoalsPage() {
       <EditGoalModal
         goal={selectedGoal}
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedGoal(null);
+        }}
       />
 
       {selectedGoal && (
         <GoalDetailsModal
           goalId={selectedGoal.id}
           isOpen={isDetailsModalOpen}
-          onClose={() => setIsDetailsModalOpen(false)}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            setSelectedGoal(null);
+          }}
         />
       )}
     </>
