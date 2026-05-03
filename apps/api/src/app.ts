@@ -46,11 +46,14 @@ app.use((err: any, req: Request, res: Response, next: any) => {
   } else if (err.name === 'PrismaClientKnownRequestError' || err.message?.includes('prisma')) {
     // Handle Prisma errors
     statusCode = httpStatus.BAD_REQUEST;
-    message = 'Database operation failed. Please check your input data.';
+    message = `Database Error: ${err.message || 'Operation failed'}`;
 
-    // Provide more specific hints for common Prisma errors if needed
     if (err.code === 'P2002') {
-      message = 'A record with this information already exists.';
+      message = 'A record with this information already exists (Duplicate Entry).';
+    } else if (err.code === 'P2021') {
+      message = 'Database tables are missing. Please run prisma db push.';
+    } else {
+      message = `Database Error (${err.code || 'Unknown'}): ${err.message}`;
     }
   }
 
