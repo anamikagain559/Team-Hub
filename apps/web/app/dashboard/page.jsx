@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
           { name: 'Total Goals', value: result.totalGoals, icon: TrendingUp, color: 'text-blue-500' },
           { name: 'Weekly Completions', value: result.itemsCompletedThisWeek, icon: CheckCircle, color: 'text-green-500' },
           { name: 'Overdue Items', value: result.overdueCount, icon: AlertCircle, color: 'text-red-500' },
-          { name: 'Active Workspace', value: 'Live', icon: Clock, color: 'text-yellow-500' },
+          { name: 'Active Workspace', value: currentWorkspace.name, icon: Clock, color: 'text-yellow-500' },
         ]);
         setData(result.chartData || []);
       }
