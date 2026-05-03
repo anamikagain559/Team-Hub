@@ -10,6 +10,10 @@ cloudinary.config({
   api_secret: config.cloudinary.api_secret,
 });
 
+if (!fs.existsSync('uploads/')) {
+  fs.mkdirSync('uploads/');
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/');

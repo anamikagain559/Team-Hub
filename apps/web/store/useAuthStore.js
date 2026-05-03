@@ -72,8 +72,7 @@ const useAuthStore = create((set, get) => ({
 
       const response = await axios.patch(`${API_URL}/users/update-profile`, formData, {
         headers: { 
-          Authorization: token,
-          'Content-Type': 'multipart/form-data'
+          Authorization: token
         }
       });
       

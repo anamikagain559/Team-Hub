@@ -111,7 +111,7 @@ export default function GoalsPage() {
           <p className="mt-1 text-muted-foreground font-bold uppercase tracking-[0.1em] text-xs">Track and manage your team's objectives</p>
         </div>
         {can('CREATE_GOAL') && (
-          <button 
+          <button
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center rounded-2xl bg-primary px-6 py-3 text-sm font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all shadow-lg shadow-primary/20"
           >
@@ -136,7 +136,7 @@ export default function GoalsPage() {
           goals.map((goal) => {
             const progress = calculateProgress(goal);
             return (
-              <div 
+              <div
                 key={goal.id}
                 onClick={() => handleGoalClick(goal)}
                 className="group flex flex-col md:flex-row md:items-center justify-between rounded-[2rem] border border-border bg-card p-6 transition-all hover:border-primary/40 hover:bg-muted/50 cursor-pointer animate-in slide-in-from-bottom-2 duration-300 shadow-sm hover:shadow-xl"
@@ -178,9 +178,9 @@ export default function GoalsPage() {
                       <div className="h-full rounded-full bg-primary transition-all duration-700 shadow-[0_0_10px_rgba(var(--primary),0.5)]" style={{ width: `${progress}%` }} />
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center -space-x-3">
-                    <div 
+                    <div
                       title={`Assigned to ${goal.owner?.name}`}
                       className="h-10 w-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-black ring-2 ring-transparent group-hover:ring-primary/20 transition-all shadow-md overflow-hidden"
                     >
@@ -194,15 +194,15 @@ export default function GoalsPage() {
 
                   <div className="flex items-center space-x-2">
                     {can('UPDATE_GOAL') && (
-                      <button 
+                      <button
                         onClick={(e) => handleEditClick(e, goal)}
                         className="rounded-xl p-2.5 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all md:opacity-0 group-hover:opacity-100"
                       >
                         <Pencil className="h-5 w-5" />
                       </button>
                     )}
-                    
-                    <button 
+
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleGoalClick(goal);
@@ -213,7 +213,7 @@ export default function GoalsPage() {
                       <span>Milestone</span>
                     </button>
 
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStatusChange(goal.id, goal.status === 'COMPLETED' ? 'IN_PROGRESS' : 'COMPLETED');
@@ -227,7 +227,7 @@ export default function GoalsPage() {
                     </button>
 
                     {can('DELETE_GOAL') && (
-                      <button 
+                      <button
                         onClick={(e) => handleDeleteClick(e, goal)}
                         className="rounded-xl p-2.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all md:opacity-0 group-hover:opacity-100"
                       >
@@ -242,9 +242,9 @@ export default function GoalsPage() {
         )}
       </div>
 
-      <CreateGoalModal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
+      <CreateGoalModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
         workspaceId={currentWorkspace?.id}
       />
 
