@@ -2,17 +2,17 @@ import nodemailer from 'nodemailer';
 import prisma from '../shared/prisma';
 import { NotificationService } from '../modules/notification/notification.service';
 
-const config = {
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-};
-
 const sendEmail = async (to: string, subject: string, html: string) => {
+  const config = {
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT),
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  };
+
   const transporter = nodemailer.createTransport(config);
 
   console.log(`[EmailService] Sending email to: ${to} | Subject: ${subject}`);
