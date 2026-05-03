@@ -9,9 +9,19 @@ import { swaggerDocument } from './app/docs/swagger';
 
 const app: Application = express();
 
-// Simplest and most permissive CORS for debugging
+const allowedOrigins = [
+  'https://web-production-12fe.up.railway.app',
+  'http://localhost:3000'
+];
+
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
