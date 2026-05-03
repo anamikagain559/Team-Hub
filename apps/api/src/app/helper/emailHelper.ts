@@ -3,15 +3,25 @@ import prisma from '../shared/prisma';
 import { NotificationService } from '../modules/notification/notification.service';
 
 const sendEmail = async (to: string, subject: string, html: string) => {
-  const config = {
+  const isGmail = process.env.EMAIL_HOST?.includes('gmail') || process.env.EMAIL_USER?.includes('@gmail.com');
+
+  const config: any = {
     host: process.env.EMAIL_HOST,
     port: Number(process.env.EMAIL_PORT),
-    secure: Number(process.env.EMAIL_PORT) === 465, // true for 465, false for 587
+    secure: Number(process.env.EMAIL_PORT) === 465,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
   };
+
+  // If using Gmail, use the built-in service config for better reliability
+  if (isGmail) {
+    delete config.host;
+    delete config.port;
+    delete config.secure;
+    config.service = 'gmail';
+  }
 
   const transporter = nodemailer.createTransport(config);
 

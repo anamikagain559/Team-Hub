@@ -93,9 +93,13 @@ const useWorkspaceStore = create((set, get) => ({
       set((state) => ({
         announcements: state.announcements.map((ann) => {
           if (ann.id === announcementId) {
+            // Filter out the temp comment AND ensure no other duplicate with the same real ID exists
+            const filteredComments = (ann.comments || []).filter(
+              c => c.id !== tempComment.id && c.id !== response.data.data.id
+            );
             return {
               ...ann,
-              comments: (ann.comments || []).map(c => c.id === tempComment.id ? response.data.data : c)
+              comments: [...filteredComments, response.data.data]
             };
           }
           return ann;
