@@ -144,7 +144,7 @@ const addComment = async (userId: string, announcementId: string, content: strin
         userId: announcement.authorId,
         type: 'ANNOUNCEMENT',
         content: `${user?.name || 'Someone'} commented on your announcement: "${announcement.title}"`,
-      }).catch(e => console.error('[NotificationError]:', e));
+      }).catch((e: any) => console.error('[NotificationError]:', e));
     }
   }
 
