@@ -4,6 +4,7 @@ import { io } from 'socket.io-client';
 import useAuthStore from '../store/useAuthStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 import Swal from 'sweetalert2';
+import { getSocketUrl } from '../lib/urlHelper';
 
 const SocketContext = createContext(null);
 
@@ -17,7 +18,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && currentWorkspace) {
-      const socketInstance = io(process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'https://api-production-4940.up.railway.app', {
+      const socketInstance = io(getSocketUrl(), {
         query: {
           userId: user.id,
           workspaceId: currentWorkspace.id

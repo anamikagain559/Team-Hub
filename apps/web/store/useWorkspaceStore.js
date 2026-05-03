@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import axios from 'axios';
 import useAuthStore from './useAuthStore';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-production-4940.up.railway.app/api/v1';
+import { getApiUrl } from '../lib/urlHelper';
+const API_URL = getApiUrl();
 
 const useWorkspaceStore = create((set, get) => ({
   workspaces: [],
