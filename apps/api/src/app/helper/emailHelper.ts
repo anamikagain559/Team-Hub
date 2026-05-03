@@ -10,8 +10,8 @@ const sendEmail = async (to: string, subject: string, html: string) => {
   if (isGmail) {
     config = {
       host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      port: 465,
+      secure: true, // true for 465
       family: 4,
       auth: {
         user: process.env.EMAIL_USER,
@@ -20,7 +20,7 @@ const sendEmail = async (to: string, subject: string, html: string) => {
       tls: {
         rejectUnauthorized: false
       },
-      connectionTimeout: 20000, // Increase to 20s
+      connectionTimeout: 20000,
       logger: true,
       debug: true
     };
