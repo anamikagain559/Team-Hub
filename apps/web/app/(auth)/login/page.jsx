@@ -18,6 +18,10 @@ export default function LoginPage() {
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: 'admin@teamhub.com',
+      password: 'admin123',
+    },
   });
 
   const onSubmit = async (data) => {

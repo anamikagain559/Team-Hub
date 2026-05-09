@@ -8,7 +8,7 @@ import Swal from 'sweetalert2';
 export default function CreateGoalModal({ isOpen, onClose }) {
   const { currentWorkspace, createGoal, fetchWorkspaceMembers } = useWorkspaceStore();
   const { user: currentUser } = useAuthStore();
-  
+
   const [formData, setFormData] = useState({
     title: '',
     ownerId: '',
@@ -55,13 +55,13 @@ export default function CreateGoalModal({ isOpen, onClose }) {
         ...formData,
         workspaceId: currentWorkspace.id,
       });
-      
+
       onClose();
-      setFormData({ 
-        title: '', 
-        ownerId: currentUser?.id || '', 
-        dueDate: '', 
-        status: 'TODO' 
+      setFormData({
+        title: '',
+        ownerId: currentUser?.id || '',
+        dueDate: '',
+        status: 'TODO'
       });
 
       Swal.fire({
@@ -76,7 +76,7 @@ export default function CreateGoalModal({ isOpen, onClose }) {
       });
     } catch (error) {
       console.error('Failed to create goal:', error);
-      
+
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
@@ -100,7 +100,7 @@ export default function CreateGoalModal({ isOpen, onClose }) {
             </div>
             <h2 className="text-lg font-bold text-white">Create New Goal</h2>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           >
