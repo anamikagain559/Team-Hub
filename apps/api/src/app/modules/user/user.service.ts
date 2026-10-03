@@ -1,6 +1,6 @@
 import { User } from '@prisma/client';
 import prisma from '../../shared/prisma';
-import { FileUploadHelper } from '../../helper/fileUploadHelper';
+import { FileUploadHelper } from '../../helper/uploadHelper';
 import { IUploadFile } from '../../types/file';
 
 /**
