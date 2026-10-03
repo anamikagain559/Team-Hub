@@ -4,19 +4,24 @@ import * as fs from 'fs';
 import config from '../../config';
 import { ICloudinaryResponse, IUploadFile } from '../types/file';
 
+import os from 'os';
+import path from 'path';
+
 cloudinary.config({
   cloud_name: config.cloudinary.cloud_name,
   api_key: config.cloudinary.api_key,
   api_secret: config.cloudinary.api_secret,
 });
 
-if (!fs.existsSync('uploads/')) {
-  fs.mkdirSync('uploads/');
+const uploadDir = path.join(os.tmpdir(), 'uploads');
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);
