@@ -13,10 +13,11 @@ async function main() {
     update: {
       password: adminPassword,
       role: UserRole.ADMIN,
+      name: 'Admin',
     },
     create: {
       email: 'admin@teamhub.com',
-      name: 'System Admin',
+      name: 'Admin',
       password: adminPassword,
       role: UserRole.ADMIN,
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
