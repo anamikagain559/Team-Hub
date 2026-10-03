@@ -19,8 +19,8 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@teamhub.com',
-      password: 'admin123',
+      email: process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL || 'admin@teamhub.com',
+      password: process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD || 'admin123',
     },
   });
 
