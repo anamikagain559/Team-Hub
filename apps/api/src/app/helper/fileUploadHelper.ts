@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import config from '../../config';
 import { ICloudinaryResponse, IUploadFile } from '../types/file';
 
-import os from 'os';
+
 import path from 'path';
 
 cloudinary.config({
@@ -13,7 +13,7 @@ cloudinary.config({
   api_secret: config.cloudinary.api_secret,
 });
 
-const uploadDir = path.join(os.tmpdir(), 'uploads');
+const uploadDir = '/tmp/uploads';
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
